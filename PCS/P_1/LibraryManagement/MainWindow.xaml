@@ -1,0 +1,82 @@
+<Window x:Class="LibraryManagement.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LibraryManagement"
+        xmlns:vm="clr-namespace:LibraryManagement.ViewModels"
+        xmlns:conv="clr-namespace:LibraryManagement.Converters"
+        mc:Ignorable="d"
+        Title="Управление библиотекой" Height="500" Width="900"
+        Loaded="MainWindow_Loaded">
+    <Window.Resources>
+        <conv:FilterDisplayConverter x:Key="FilterDisplayConverter" />
+    </Window.Resources>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Панель фильтров: жанр и автор, таблица обновляется сразу -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Фильтр по жанру:" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <ComboBox x:Name="GenreFilterCombo" Width="200" Margin="0,0,24,0"
+                      ItemsSource="{Binding GenreFilterOptions}"
+                      SelectedItem="{Binding SelectedGenreFilter}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <Binding Converter="{StaticResource FilterDisplayConverter}" />
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="Фильтр по автору:" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <ComboBox x:Name="AuthorFilterCombo" Width="220" Margin="0,0,0,0"
+                      ItemsSource="{Binding AuthorFilterOptions}"
+                      SelectedItem="{Binding SelectedAuthorFilter}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <Binding Converter="{StaticResource FilterDisplayConverter}" />
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- Кнопки: Добавить, Изменить, Удалить -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
+            <Button Content="Добавить книгу" Command="{Binding AddBookCommand}" Padding="12,6" Margin="0,0,8,0" />
+            <Button Content="Изменить книгу" Command="{Binding EditBookCommand}" Padding="12,6" Margin="0,0,8,0" />
+            <Button Content="Удалить книгу" Command="{Binding DeleteBookCommand}" Padding="12,6" />
+        </StackPanel>
+
+        <!-- Таблица: название, автор, жанр, год, ISBN, количество -->
+        <DataGrid Grid.Row="2" x:Name="BooksGrid"
+                  ItemsSource="{Binding BooksView}"
+                  SelectedItem="{Binding SelectedBook}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="*" MinWidth="120" />
+                <DataGridTextColumn Header="Автор" Binding="{Binding Author.FullName}" Width="*" MinWidth="120" />
+                <DataGridTextColumn Header="Жанр" Binding="{Binding Genre.Name}" Width="*" MinWidth="80" />
+                <DataGridTextColumn Header="Год издания" Binding="{Binding PublishYear}" Width="90" />
+                <DataGridTextColumn Header="ISBN" Binding="{Binding ISBN}" Width="120" />
+                <DataGridTextColumn Header="В наличии" Binding="{Binding QuantityInStock}" Width="110" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>

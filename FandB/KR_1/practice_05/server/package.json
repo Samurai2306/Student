@@ -1,0 +1,18 @@
+{
+  "name": "practice-05-store-server-swagger",
+  "version": "1.0.0",
+  "description": "Бэкенд интернет-магазина с Swagger (Практика 5)",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "nanoid": "^3.3.7"
+  },
+  "devDependencies": {
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
+  }
+}
