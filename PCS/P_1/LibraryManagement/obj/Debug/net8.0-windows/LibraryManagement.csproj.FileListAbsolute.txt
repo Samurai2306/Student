@@ -127,3 +127,4 @@ C:\Users\user\Documents\Student\PCS\P_1\LibraryManagement\obj\Debug\net8.0-windo
 C:\Users\user\Documents\Student\PCS\P_1\LibraryManagement\obj\Debug\net8.0-windows\LibraryManagement.pdb
 C:\Users\user\Documents\Student\PCS\P_1\LibraryManagement\obj\Debug\net8.0-windows\LibraryManagement.genruntimeconfig.cache
 C:\Users\user\Documents\Student\PCS\P_1\LibraryManagement\obj\Debug\net8.0-windows\ref\LibraryManagement.dll
+C:\Users\user\Documents\Student\PCS\P_1\LibraryManagement\obj\Debug\net8.0-windows\LibraryManagement.sourcelink.json

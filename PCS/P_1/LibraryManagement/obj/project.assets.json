@@ -2382,7 +2382,7 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\user\\AppData\\Local\\Temp\\cursor-sandbox-cache\\00f7f2ceba9280b2a7595a7e8ea84e85\\nuget": {},
+    "C:\\Users\\user\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
@@ -2391,7 +2391,7 @@
       "projectUniqueName": "C:\\Users\\user\\Documents\\Student\\PCS\\P_1\\LibraryManagement\\LibraryManagement.csproj",
       "projectName": "LibraryManagement",
       "projectPath": "C:\\Users\\user\\Documents\\Student\\PCS\\P_1\\LibraryManagement\\LibraryManagement.csproj",
-      "packagesPath": "C:\\Users\\user\\AppData\\Local\\Temp\\cursor-sandbox-cache\\00f7f2ceba9280b2a7595a7e8ea84e85\\nuget",
+      "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\user\\Documents\\Student\\PCS\\P_1\\LibraryManagement\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [

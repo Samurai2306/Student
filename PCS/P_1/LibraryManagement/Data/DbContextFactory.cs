@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryManagement.Data;
@@ -7,16 +8,15 @@ namespace LibraryManagement.Data;
 /// </summary>
 public static class DbContextFactory
 {
-    private const string ConnectionString = "Data Source=library.db";
+    /// <summary>Путь к БД рядом с исполняемым файлом — иначе при разном текущем каталоге приложение может падать или создавать лишние файлы.</summary>
+    private static string ConnectionString => "Data Source=" + Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "library.db");
 
-    private static readonly Lazy<LibraryContext> LazyContext = new(() =>
+    /// <summary>Создаёт новый экземпляр контекста на каждый вызов. Вызывающий код должен вызывать Dispose (например, через using).</summary>
+    public static LibraryContext Create()
     {
         var options = new DbContextOptionsBuilder<LibraryContext>()
             .UseSqlite(ConnectionString)
             .Options;
         return new LibraryContext(options);
-    });
-
-    /// <summary>Возвращает общий экземпляр контекста. В продакшене лучше создавать новый экземпляр на операцию.</summary>
-    public static LibraryContext Create() => LazyContext.Value;
+    }
 }

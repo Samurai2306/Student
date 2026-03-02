@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Threading;
 using LibraryManagement.Data;
 using LibraryManagement.Models;
 
@@ -12,7 +13,41 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        InitializeDatabase();
+
+        // Перехват необработанных исключений — приложение не закрывается молча
+        DispatcherUnhandledException += App_DispatcherUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+        try
+        {
+            InitializeDatabase();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                "Ошибка при инициализации базы данных:\n\n" + ex.Message + "\n\nПриложение запустится с пустой базой.",
+                "Ошибка запуска",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+    }
+
+    private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        MessageBox.Show(
+            "Произошла ошибка:\n\n" + e.Exception.Message + "\n\n" + e.Exception.StackTrace,
+            "Ошибка",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        e.Handled = true; // Не завершать приложение
+    }
+
+    private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception ex)
+        {
+            MessageBox.Show("Критическая ошибка:\n\n" + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     /// <summary>
