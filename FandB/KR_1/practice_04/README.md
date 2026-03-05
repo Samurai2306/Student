@@ -37,7 +37,7 @@ cd server
 npm install
 npm start
 ```
-→ http://localhost:3000
+→ http://localhost:3000 (если порт занят: `set PORT=3002 && npm start` на Windows, тогда в `client/src/api/index.js` укажите baseURL с портом 3002)
 
 **Терминал 2 — клиент:**
 ```bash

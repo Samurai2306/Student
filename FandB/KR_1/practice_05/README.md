@@ -28,10 +28,18 @@ npm install
 npm start
 ```
 
-- **API:** http://localhost:3000  
+По умолчанию сервер слушает порт **3000**. Если порт занят (например, запущен сервер ПЗ 4), появится сообщение об ошибке. Запустите с другим портом:
+
+- **Windows (cmd):** `set PORT=3002 && npm start`
+- **Windows (PowerShell):** `$env:PORT=3002; npm start`
+- **Linux/macOS:** `PORT=3002 npm start`
+
+- **API:** http://localhost:3000 (или тот порт, который задан через `PORT`)  
 - **Документация Swagger (интерактивная):** http://localhost:3000/api-docs  
 
 В Swagger UI можно нажать «Try it out» у любого метода, подставить параметры и отправить запрос.
+
+При запуске может появиться предупреждение Node.js о `url.parse()` — оно исходит из зависимости swagger-ui-express, на работу не влияет.
 
 ## Проверка работы
 

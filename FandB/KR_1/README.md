@@ -50,7 +50,9 @@ npm start
 - API: http://localhost:3000  
 - Документация: http://localhost:3000/api-docs  
 
-Клиент — как в Практике 4 (подключается к тому же API).
+Если порт 3000 занят (например, запущен сервер ПЗ 4): `set PORT=3002 && npm start` (Windows) или `PORT=3002 npm start` (Linux/macOS). Тогда откройте http://localhost:3002/api-docs  
+
+Клиент ПЗ 4 по умолчанию обращается к порту 3000; при запуске ПЗ 5 на другом порту смените в клиенте `src/api/index.js` baseURL.
 
 ## Требования
 

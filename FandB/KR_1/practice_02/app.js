@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = Number(process.env.PORT) || 3000;
 
 let products = [
     { id: 1, name: 'Ноутбук', cost: 45000 },
@@ -76,6 +76,13 @@ app.delete('/products/:id', (req, res) => {
     res.status(204).send();
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`Сервер запущен на http://localhost:${port}`);
+});
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`\nПорт ${port} занят. Используйте другой порт: set PORT=3002 && npm start\n`);
+        process.exit(1);
+    }
+    throw err;
 });

@@ -107,7 +107,7 @@ namespace LibraryManagement {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/LibraryManagement;component/addeditbookwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/LibraryManagement;V1.0.0.0;component/addeditbookwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\AddEditBookWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

@@ -15,8 +15,8 @@ export default function ProductCard({ product, onEdit, onDelete }) {
         <h3 className="product-card__title">{product.name}</h3>
         <p className="product-card__description">{product.description || '—'}</p>
         <div className="product-card__meta">
-          <span className="product-card__price">{product.price.toLocaleString('ru-RU')} ₽</span>
-          <span className="product-card__stock">В наличии: {product.quantityInStock}</span>
+          <span className="product-card__price">{(Number(product.price) || 0).toLocaleString('ru-RU')} ₽</span>
+          <span className="product-card__stock">В наличии: {product.quantityInStock ?? 0}</span>
           {product.rating != null && (
             <span className="product-card__rating">★ {product.rating}</span>
           )}

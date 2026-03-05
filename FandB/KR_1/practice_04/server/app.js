@@ -3,7 +3,7 @@ const cors = require('cors');
 const { nanoid } = require('nanoid');
 
 const app = express();
-const port = 3000;
+const port = Number(process.env.PORT) || 3000;
 
 app.use(express.json());
 app.use(cors({ origin: 'http://localhost:3001', methods: ['GET', 'POST', 'PATCH', 'DELETE'], allowedHeaders: ['Content-Type'] }));
@@ -114,4 +114,11 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(port, () => console.log(`Сервер: http://localhost:${port}`));
+const server = app.listen(port, () => console.log(`Сервер: http://localhost:${port}`));
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`\nПорт ${port} занят. Завершите другой процесс или: set PORT=3002 && npm start\n`);
+        process.exit(1);
+    }
+    throw err;
+});
