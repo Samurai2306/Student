@@ -1,0 +1,15 @@
+## Базовый .gitignore для .NET / WPF
+
+bin/
+obj/
+
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+.vs/
+
+## Локальный подробный README, не для GitHub
+README_LOCAL.md
+
