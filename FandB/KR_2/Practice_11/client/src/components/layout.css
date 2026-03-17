@@ -1,0 +1,137 @@
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  background: white;
+}
+
+.brand {
+  font-weight: 700;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav a {
+  text-decoration: none;
+  color: inherit;
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+
+.nav a.active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.userpill {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.linkbtn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+
+.linkbtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.content {
+  padding: 18px;
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  padding: 16px;
+  background: white;
+}
+
+.row {
+  display: grid;
+  gap: 10px;
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.field input,
+.field textarea {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  font: inherit;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: black;
+  color: white;
+  border-color: black;
+}
+
+.btn.danger {
+  background: #b10f2e;
+  border-color: #b10f2e;
+  color: white;
+}
+
+.muted {
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 13px;
+}
+
+.error {
+  color: #b10f2e;
+  font-size: 13px;
+}
+
