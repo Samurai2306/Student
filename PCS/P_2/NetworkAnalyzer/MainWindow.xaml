@@ -55,9 +55,15 @@
                 </Border>
             </Grid>
 
-            <StackPanel Grid.Column="1" Margin="20,0,0,0">
-                <TextBlock Text="Проверка и анализ URL/URI" FontWeight="Bold" FontSize="14" Margin="0,0,0,6"/>
-                <Grid>
+            <Grid Grid.Column="1" Margin="20,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*" MinHeight="220"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Проверка и анализ URL/URI" FontWeight="Bold" FontSize="14" Margin="0,0,0,6"/>
+                <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -75,15 +81,27 @@
                             Padding="12,6"
                             Click="AnalyzeUrlButton_Click"/>
                 </Grid>
-                <TextBlock Text="Результаты анализа" FontWeight="SemiBold" Margin="0,12,0,4"/>
-                <Border BorderBrush="#CCC" BorderThickness="1" Padding="10" Background="#FAFAFA">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel x:Name="UrlResultsPanel">
-                            <TextBlock x:Name="UrlResultsText" TextWrapping="Wrap" FontFamily="Consolas" FontSize="12"/>
-                        </StackPanel>
-                    </ScrollViewer>
+                <TextBlock Grid.Row="2" Text="Результаты анализа" FontWeight="SemiBold" Margin="0,12,0,6"/>
+                <Border Grid.Row="3"
+                        BorderBrush="#CCC"
+                        BorderThickness="1"
+                        Background="#FAFAFA"
+                        SnapsToDevicePixels="True">
+                    <FlowDocumentScrollViewer x:Name="UrlResultsViewer"
+                                              VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled"
+                                              IsSelectionEnabled="True"
+                                              Padding="0">
+                        <FlowDocument x:Name="UrlResultsDoc"
+                                      FontFamily="Segoe UI"
+                                      FontSize="13"
+                                      PagePadding="16,14,20,20"
+                                      TextAlignment="Left"
+                                      Background="Transparent"
+                                      Foreground="#242424"/>
+                    </FlowDocumentScrollViewer>
                 </Border>
-            </StackPanel>
+            </Grid>
         </Grid>
 
         <Separator Grid.Row="2" Margin="0,4"/>
