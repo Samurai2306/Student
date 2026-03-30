@@ -211,13 +211,13 @@ public partial class MainWindow : Window
             if (!string.IsNullOrEmpty(host))
             {
                 lines.Add("");
-                lines.Add("─── ICMP (Ping) ───");
+                lines.Add("── Ping ──");
                 AppendPingReport(lines, host);
                 lines.Add("");
-                lines.Add("─── DNS и адреса ───");
+                lines.Add("── DNS ──");
                 AppendDnsReport(lines, host);
                 lines.Add("");
-                lines.Add("─── Проверка TCP ───");
+                lines.Add("── TCP ──");
                 AppendTcpProbeReport(lines, uri);
             }
         }
@@ -226,7 +226,7 @@ public partial class MainWindow : Window
             result.ErrorMessage = "Неверный формат URL: " + ex.Message;
             lines.Add("Ошибка разбора URI: " + ex.Message);
             lines.Add("");
-            lines.Add("─── Сеть по введённой строке (как по имени хоста) ───");
+            lines.Add("── Сеть (ввод как хост) ──");
             AppendPingReport(lines, input);
             lines.Add("");
             AppendDnsReport(lines, input);
@@ -243,110 +243,77 @@ public partial class MainWindow : Window
 
     private static void AppendUriReport(List<string> lines, Uri uri, string userInput, string stringUsedForParse)
     {
-        lines.Add("═══ Разбор URI ═══");
-        lines.Add("Ввод пользователя: " + userInput);
+        lines.Add("── URI ──");
         if (!string.Equals(userInput, stringUsedForParse, StringComparison.Ordinal))
-            lines.Add("Добавлена схема для разбора: " + stringUsedForParse);
-        lines.Add("AbsoluteUri (канонический вид): " + uri.AbsoluteUri);
-        lines.Add("IsAbsoluteUri: " + uri.IsAbsoluteUri);
-        lines.Add("Схема (протокол): " + uri.Scheme);
-        lines.Add("Тип имени хоста (HostNameType): " + DescribeHostNameType(uri.HostNameType));
-        lines.Add("Хост (Host): " + uri.Host);
-        if (uri.HostNameType == UriHostNameType.Dns)
-        {
-            lines.Add("Хост в Unicode (IdnHost): " + uri.IdnHost);
-            lines.Add("DnsSafeHost (ASCII / punycode): " + uri.DnsSafeHost);
-        }
+            lines.Add("Ввод: " + userInput + " → разбор: " + stringUsedForParse);
+        else
+            lines.Add("Ввод: " + userInput);
 
-        lines.Add(DescribeUserInfoLine(uri));
-        lines.Add("Authority: " + (string.IsNullOrEmpty(uri.Authority) ? "пусто" : uri.Authority));
+        lines.Add("URL: " + uri.AbsoluteUri);
+        lines.Add("Схема: " + uri.Scheme + ", хост: " + uri.Host + " (" + ShortHostKind(uri.HostNameType) + ")");
+        if (uri.HostNameType == UriHostNameType.Dns &&
+            !string.Equals(uri.IdnHost, uri.DnsSafeHost, StringComparison.Ordinal))
+            lines.Add("Punycode: " + uri.DnsSafeHost);
 
-        var portDesc = uri.Port < 0
-            ? "не задан"
+        lines.Add(ShortUserInfo(uri));
+
+        var portLine = uri.Port < 0
+            ? "Порт: не задан"
             : uri.IsDefaultPort
-                ? $"{uri.Port} (стандартный порт для схемы «{uri.Scheme}»)"
-                : $"{uri.Port} (явно указан в URL)";
-        lines.Add("Порт (число): " + uri.Port);
-        lines.Add("Порт (описание): " + portDesc);
-        lines.Add("IsDefaultPort: " + uri.IsDefaultPort);
+                ? "Порт: " + uri.Port + " (стандарт для " + uri.Scheme + ")"
+                : "Порт: " + uri.Port + " (в строке URL)";
+        lines.Add(portLine);
 
         var path = string.IsNullOrEmpty(uri.AbsolutePath) ? "/" : uri.AbsolutePath;
-        lines.Add("AbsolutePath: " + path);
-        lines.Add("LocalPath: " + uri.LocalPath);
-        lines.Add("PathAndQuery: " + uri.PathAndQuery);
-
-        if (uri.Segments.Length > 0)
-        {
-            lines.Add("Сегменты пути (Segments):");
-            foreach (var seg in uri.Segments)
-            {
-                var note = seg.EndsWith('/') ? "каталог" : "ресурс";
-                lines.Add("  • " + seg.TrimEnd('\r', '\n') + "  (" + note + ")");
-            }
-        }
+        lines.Add("Путь: " + path);
+        var queryBody = uri.Query.TrimStart('?');
+        if (queryBody.Length > 0)
+            lines.Add("Путь + query: " + uri.PathAndQuery);
     }
 
-    private static string DescribeHostNameType(UriHostNameType t) => t switch
+    private static string ShortHostKind(UriHostNameType t) => t switch
     {
-        UriHostNameType.Basic => "Basic (нестандартное имя)",
-        UriHostNameType.Dns => "Dns (доменное имя)",
+        UriHostNameType.Dns => "домен",
         UriHostNameType.IPv4 => "IPv4",
         UriHostNameType.IPv6 => "IPv6",
-        UriHostNameType.Unknown => "Unknown",
-        _ => t.ToString()
+        UriHostNameType.Basic => "другое",
+        _ => "?"
     };
 
-    private static string DescribeUserInfoLine(Uri uri)
+    private static string ShortUserInfo(Uri uri)
     {
         var ui = uri.UserInfo;
         if (string.IsNullOrEmpty(ui))
-            return "UserInfo (логин:пароль): не указаны";
+            return "Логин в URL: нет";
         var colon = ui.IndexOf(':');
         if (colon < 0)
-            return "UserInfo: пользователь «" + Uri.UnescapeDataString(ui) + "» (без пароля в URI)";
-        var user = Uri.UnescapeDataString(ui[..colon]);
-        return "UserInfo: пользователь «" + user + "», пароль в URI присутствует (не отображается)";
+            return "Логин в URL: " + Uri.UnescapeDataString(ui);
+        return "Логин в URL: " + Uri.UnescapeDataString(ui[..colon]) + " (пароль скрыт)";
     }
 
     private static void AppendQueryReport(List<string> lines, Uri uri)
     {
-        lines.Add("");
-        lines.Add("─── Строка запроса (query) ───");
         var raw = uri.Query;
         if (string.IsNullOrEmpty(raw) || raw == "?")
-        {
-            lines.Add("Не указана: в URL нет символа ? с параметрами.");
             return;
-        }
 
-        lines.Add("Сырой фрагмент Query: " + raw);
         var body = raw.StartsWith('?') ? raw[1..] : raw;
-        AppendParsedQueryPairs(lines, body);
-    }
-
-    private static void AppendParsedQueryPairs(List<string> lines, string queryBody)
-    {
-        if (string.IsNullOrEmpty(queryBody))
-        {
-            lines.Add("После ? строка пуста.");
+        if (string.IsNullOrEmpty(body))
             return;
-        }
 
-        lines.Add("Пары параметр → значение (декодирование %XX и + как пробел):");
-        var pairs = queryBody.Split('&', StringSplitOptions.RemoveEmptyEntries);
-        foreach (var pair in pairs)
+        lines.Add("");
+        lines.Add("── Query ──");
+        var parts = new List<string>();
+        foreach (var pair in body.Split('&', StringSplitOptions.RemoveEmptyEntries))
         {
             var eq = pair.IndexOf('=');
             if (eq < 0)
-            {
-                lines.Add("  • " + DecodeQueryComponent(pair) + " → (флаг без значения)");
-                continue;
-            }
-
-            var key = DecodeQueryComponent(pair[..eq]);
-            var val = DecodeQueryComponent(pair[(eq + 1)..]);
-            lines.Add("  • " + key + " → " + val);
+                parts.Add(DecodeQueryComponent(pair));
+            else
+                parts.Add(DecodeQueryComponent(pair[..eq]) + "=" + DecodeQueryComponent(pair[(eq + 1)..]));
         }
+
+        lines.Add(string.Join("; ", parts));
     }
 
     private static string DecodeQueryComponent(string s) =>
@@ -354,17 +321,13 @@ public partial class MainWindow : Window
 
     private static void AppendFragmentReport(List<string> lines, Uri uri)
     {
-        lines.Add("");
-        lines.Add("─── Фрагмент (fragment) ───");
         var f = uri.Fragment;
         if (string.IsNullOrEmpty(f) || f == "#")
-        {
-            lines.Add("Не указан: в URL нет части после символа #.");
             return;
-        }
 
-        lines.Add("Сырой фрагмент: " + f);
-        lines.Add("Без символа #: " + f.TrimStart('#'));
+        lines.Add("");
+        lines.Add("── Фрагмент ──");
+        lines.Add(f.TrimStart('#'));
     }
 
     private static void AppendPingReport(List<string> lines, string host)
@@ -373,28 +336,18 @@ public partial class MainWindow : Window
         {
             using var ping = new Ping();
             var reply = ping.Send(host, 3000);
-            lines.Add("Статус: " + reply.Status);
             if (reply.Status == IPStatus.Success)
             {
-                lines.Add("Доступен по ICMP.");
-                lines.Add("Время отклика (RoundtripTime): " + reply.RoundtripTime + " мс");
-                if (reply.Address != null)
-                    lines.Add("Ответивший адрес: " + reply.Address + " (" + reply.Address.AddressFamily + ")");
-                if (reply.Options != null)
-                {
-                    lines.Add("TTL: " + reply.Options.Ttl);
-                    lines.Add("DontFragment: " + reply.Options.DontFragment);
-                }
-
-                if (reply.Buffer is { Length: > 0 })
-                    lines.Add("Размер полученного буфера: " + reply.Buffer.Length + " байт");
+                var ip = reply.Address?.ToString() ?? "?";
+                var ttl = reply.Options?.Ttl.ToString() ?? "?";
+                lines.Add("Есть ответ: " + reply.RoundtripTime + " мс, TTL " + ttl + ", с " + ip);
             }
             else
-                lines.Add("Узел не ответил на ping в ожидаемом виде (часто блокируется файрволом).");
+                lines.Add("Нет ответа: " + reply.Status + " (часто ICMP режется)");
         }
         catch (Exception ex)
         {
-            lines.Add("Ошибка ping: " + ex.Message);
+            lines.Add("Ping: " + ex.Message);
         }
     }
 
@@ -403,43 +356,27 @@ public partial class MainWindow : Window
         try
         {
             var entry = Dns.GetHostEntry(host);
-            lines.Add("Каноническое имя (HostName): " + entry.HostName);
+            lines.Add("Имя: " + entry.HostName);
 
             var aliases = entry.Aliases?.Where(a => !string.IsNullOrWhiteSpace(a)).ToArray() ?? Array.Empty<string>();
             if (aliases.Length > 0)
-            {
-                lines.Add("Псевдонимы (Aliases):");
-                foreach (var a in aliases)
-                    lines.Add("  • " + a);
-            }
-            else
-                lines.Add("Псевдонимы (Aliases): нет");
+                lines.Add("Псевдонимы: " + string.Join(", ", aliases));
 
             if (entry.AddressList.Length == 0)
             {
-                lines.Add("Список IP-адресов пуст.");
+                lines.Add("IP: нет");
                 return;
             }
 
-            var v4 = entry.AddressList.Where(a => a.AddressFamily == AddressFamily.InterNetwork).ToArray();
-            var v6 = entry.AddressList.Where(a => a.AddressFamily == AddressFamily.InterNetworkV6).ToArray();
-            lines.Add("Всего записей AddressList: " + entry.AddressList.Length + " (IPv4: " + v4.Length + ", IPv6: " + v6.Length + ")");
-
-            foreach (var ip in entry.AddressList)
-            {
-                lines.Add("  • " + ip + "  [" + ip.AddressFamily + "]  — классификация: " + GetAddressType(ip));
-                if (ip.AddressFamily == AddressFamily.InterNetworkV6 && ip.ScopeId != 0)
-                    lines.Add("      ScopeId (зона интерфейса): " + ip.ScopeId);
-            }
+            var summary = string.Join(", ",
+                entry.AddressList.Select(ip => ip + " (" + ShortAddressKind(ip) + ")"));
+            lines.Add("IP: " + summary);
         }
         catch (Exception ex)
         {
-            lines.Add("Ошибка DNS: " + ex.Message);
+            lines.Add("DNS: " + ex.Message);
             if (IPAddress.TryParse(host, out var ipOnly))
-            {
-                lines.Add("Ввод распознан как IP без DNS-имени.");
-                lines.Add("  • " + ipOnly + " — классификация: " + GetAddressType(ipOnly));
-            }
+                lines.Add("Это IP: " + ipOnly + " (" + ShortAddressKind(ipOnly) + ")");
         }
     }
 
@@ -448,67 +385,51 @@ public partial class MainWindow : Window
         var scheme = uri.Scheme.ToLowerInvariant();
         if (scheme is not ("http" or "https" or "ftp" or "ws" or "wss"))
         {
-            lines.Add("Для схемы «" + uri.Scheme + "» проверка TCP не выполняется (не типовой клиентский порт).");
+            lines.Add("Для «" + uri.Scheme + "» проверка TCP не делается");
             return;
         }
 
-        if (uri.Port < 0)
+        if (uri.Port < 0 || string.IsNullOrEmpty(uri.Host))
         {
-            lines.Add("Порт не определён — TCP не проверялся.");
+            lines.Add("TCP: пропущено");
             return;
         }
 
         var host = uri.Host;
-        if (string.IsNullOrEmpty(host))
-        {
-            lines.Add("Нет хоста — TCP не проверялся.");
-            return;
-        }
-
         try
         {
             using var client = new TcpClient();
             var connectTask = client.ConnectAsync(host, uri.Port);
             if (!connectTask.Wait(2500))
             {
-                lines.Add("TCP " + host + ":" + uri.Port + " — таймаут 2500 мс (порт может быть закрыт или фильтруется).");
+                lines.Add("TCP " + uri.Port + ": таймаут (закрыт или фильтр)");
                 return;
             }
 
-            if (client.Connected)
-            {
-                var ep = (IPEndPoint)client.Client.RemoteEndPoint!;
-                lines.Add("TCP-соединение с " + ep.Address + ":" + ep.Port + " установлено успешно.");
-            }
-            else
-                lines.Add("TCP: соединение не установлено.");
+            lines.Add(client.Connected ? "TCP " + uri.Port + ": ок" : "TCP: нет соединения");
         }
         catch (Exception ex)
         {
-            lines.Add("TCP " + host + ":" + uri.Port + " — ошибка: " + ex.Message);
+            lines.Add("TCP: " + ex.Message);
         }
     }
 
-    private static string GetAddressType(IPAddress ip)
+    private static string ShortAddressKind(IPAddress ip)
     {
         if (IPAddress.IsLoopback(ip))
-            return "Loopback (локальный контур)";
+            return "loopback";
         var s = ip.ToString();
         if (s.StartsWith("192.168.", StringComparison.Ordinal) || s.StartsWith("10.", StringComparison.Ordinal) ||
             s.StartsWith("172.16.", StringComparison.Ordinal) || s.StartsWith("172.17.", StringComparison.Ordinal) ||
             s.StartsWith("172.18.", StringComparison.Ordinal) || s.StartsWith("172.19.", StringComparison.Ordinal) ||
             IsPrivate172(s) ||
             s.StartsWith("172.30.", StringComparison.Ordinal) || s.StartsWith("172.31.", StringComparison.Ordinal))
-            return "Локальный (частный IPv4)";
-        if (ip.AddressFamily == AddressFamily.InterNetworkV6)
-        {
-            if (s.StartsWith("fe80", StringComparison.OrdinalIgnoreCase) || ip.IsIPv6LinkLocal)
-                return "Локальный IPv6 (link-local)";
-            if (ip.IsIPv6SiteLocal)
-                return "IPv6 site-local (устар.)";
-        }
+            return "частный";
+        if (ip.AddressFamily == AddressFamily.InterNetworkV6 &&
+            (s.StartsWith("fe80", StringComparison.OrdinalIgnoreCase) || ip.IsIPv6LinkLocal || ip.IsIPv6SiteLocal))
+            return "локальный IPv6";
 
-        return "Публичный / глобальный маршрутизируемый";
+        return "публичный";
     }
 
     private static bool IsPrivate172(string s)
@@ -542,27 +463,23 @@ public partial class MainWindow : Window
             var line = raw ?? "";
             if (string.IsNullOrWhiteSpace(line))
             {
-                var gap = new Paragraph { Margin = new Thickness(0, 8, 0, 0) };
+                var gap = new Paragraph { Margin = new Thickness(0, 4, 0, 0) };
                 gap.Inlines.Add(new LineBreak());
                 UrlResultsDoc.Blocks.Add(gap);
                 continue;
             }
 
             var run = new Run(line);
-            var para = new Paragraph(run) { KeepTogether = true, LineHeight = 20 };
+            var para = new Paragraph(run) { KeepTogether = true, LineHeight = 19 };
 
-            if (line.Contains("═══", StringComparison.Ordinal))
+            var trimmed = line.Trim();
+            if (trimmed.Length >= 6 && trimmed.StartsWith("──", StringComparison.Ordinal) &&
+                trimmed.EndsWith("──", StringComparison.Ordinal))
             {
                 run.FontWeight = FontWeights.SemiBold;
-                run.FontSize = 14;
-                run.Foreground = headerBrush;
-                para.Margin = new Thickness(0, 16, 0, 8);
-            }
-            else if (line.StartsWith("───", StringComparison.Ordinal))
-            {
-                run.FontWeight = FontWeights.SemiBold;
-                run.Foreground = subHeaderBrush;
-                para.Margin = new Thickness(0, 12, 0, 6);
+                run.Foreground = trimmed.Contains("URI", StringComparison.Ordinal) ? headerBrush : subHeaderBrush;
+                run.FontSize = trimmed.Contains("URI", StringComparison.Ordinal) ? 13.5 : 13;
+                para.Margin = new Thickness(0, 10, 0, 4);
             }
             else if (line.StartsWith("  •", StringComparison.Ordinal) || line.StartsWith("    ", StringComparison.Ordinal))
             {
