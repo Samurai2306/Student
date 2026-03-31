@@ -12,6 +12,8 @@ const ACCESS_SECRET = process.env.ACCESS_SECRET || "access_secret";
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "refresh_secret";
 const ACCESS_EXPIRES_IN = process.env.ACCESS_EXPIRES_IN || "15m";
 const REFRESH_EXPIRES_IN = process.env.REFRESH_EXPIRES_IN || "7d";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@practice11.local";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 
 /** @type {Array<{id:string,email:string,first_name:string,last_name:string,passwordHash:string,role:"user"|"seller"|"admin",blocked:boolean}>} */
 const users = [];
@@ -21,6 +23,7 @@ const products = [];
 const refreshTokens = new Set();
 
 const ROLES = /** @type {const} */ (["user", "seller", "admin"]);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function authMiddleware(req, res, next) {
   const header = req.headers.authorization || "";
@@ -53,6 +56,39 @@ function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
 
+function isNonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function validateEmail(email) {
+  const normalized = normalizeEmail(email);
+  if (!EMAIL_RE.test(normalized)) {
+    return { ok: false, error: "email must be valid" };
+  }
+  return { ok: true, value: normalized };
+}
+
+function validatePassword(password) {
+  const raw = String(password || "");
+  if (raw.length < 6) {
+    return { ok: false, error: "password must be at least 6 characters" };
+  }
+  return { ok: true, value: raw };
+}
+
+function revokeUserRefreshTokens(userId) {
+  for (const token of refreshTokens) {
+    try {
+      const payload = jwt.verify(token, REFRESH_SECRET);
+      if (payload.sub === userId) {
+        refreshTokens.delete(token);
+      }
+    } catch {
+      refreshTokens.delete(token);
+    }
+  }
+}
+
 function publicUser(user) {
   return {
     id: user.id,
@@ -82,6 +118,24 @@ function requireBodyFields(res, obj, fields) {
   }
   return true;
 }
+
+function seedAdminUser() {
+  const normalizedAdminEmail = normalizeEmail(ADMIN_EMAIL);
+  const exists = users.some((u) => u.email === normalizedAdminEmail);
+  if (exists) return;
+
+  users.push({
+    id: nanoid(10),
+    email: normalizedAdminEmail,
+    first_name: "System",
+    last_name: "Admin",
+    passwordHash: bcrypt.hashSync(ADMIN_PASSWORD, 10),
+    role: "admin",
+    blocked: false,
+  });
+}
+
+seedAdminUser();
 
 app.get("/health", (req, res) => {
   res.json({ ok: true });
@@ -119,26 +173,36 @@ function getRefreshTokenFromHeaders(req) {
 
 // --- Auth (Practice 8) ---
 app.post("/api/auth/register", async (req, res) => {
-  const { email, first_name, last_name, password, role } = req.body || {};
+  const { email, first_name, last_name, password } = req.body || {};
   if (!requireBodyFields(res, req.body || {}, ["email", "first_name", "last_name", "password"])) return;
 
-  const normalized = normalizeEmail(email);
+  if (!isNonEmptyString(first_name) || !isNonEmptyString(last_name)) {
+    return res.status(400).json({ error: "first_name and last_name must be non-empty strings" });
+  }
+
+  const emailValidation = validateEmail(email);
+  if (!emailValidation.ok) {
+    return res.status(400).json({ error: emailValidation.error });
+  }
+
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.ok) {
+    return res.status(400).json({ error: passwordValidation.error });
+  }
+
+  const normalized = emailValidation.value;
   const exists = users.some((u) => u.email === normalized);
   if (exists) return res.status(409).json({ error: "email already exists" });
 
-  const normalizedRole = role ? String(role).trim() : "user";
-  if (role !== undefined && !ROLES.includes(normalizedRole)) {
-    return res.status(400).json({ error: `role must be one of: ${ROLES.join(", ")}` });
-  }
-
-  const passwordHash = await bcrypt.hash(String(password), 10);
+  const passwordHash = await bcrypt.hash(passwordValidation.value, 10);
   const user = {
     id: nanoid(10),
     email: normalized,
     first_name: String(first_name).trim(),
     last_name: String(last_name).trim(),
     passwordHash,
-    role: normalizedRole,
+    // Guest registration can only create a regular user.
+    role: "user",
     blocked: false,
   };
   users.push(user);
@@ -149,12 +213,22 @@ app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body || {};
   if (!requireBodyFields(res, req.body || {}, ["email", "password"])) return;
 
-  const normalized = normalizeEmail(email);
+  const emailValidation = validateEmail(email);
+  if (!emailValidation.ok) {
+    return res.status(400).json({ error: emailValidation.error });
+  }
+
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.ok) {
+    return res.status(400).json({ error: passwordValidation.error });
+  }
+
+  const normalized = emailValidation.value;
   const user = users.find((u) => u.email === normalized);
-  if (!user) return res.status(404).json({ error: "user not found" });
+  if (!user) return res.status(401).json({ error: "invalid credentials" });
   if (user.blocked) return res.status(403).json({ error: "user is blocked" });
 
-  const ok = await bcrypt.compare(String(password), user.passwordHash);
+  const ok = await bcrypt.compare(passwordValidation.value, user.passwordHash);
   if (!ok) return res.status(401).json({ error: "invalid credentials" });
 
   const accessToken = generateAccessToken(user);
@@ -211,20 +285,40 @@ app.put("/api/users/:id", authMiddleware, roleMiddleware(["admin"]), async (req,
   const { email, first_name, last_name, password, role, blocked } = req.body || {};
 
   if (email !== undefined) {
-    const normalized = normalizeEmail(email);
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.ok) return res.status(400).json({ error: emailValidation.error });
+    const normalized = emailValidation.value;
     const exists = users.some((x) => x.email === normalized && x.id !== u.id);
     if (exists) return res.status(409).json({ error: "email already exists" });
     u.email = normalized;
   }
-  if (first_name !== undefined) u.first_name = String(first_name).trim();
-  if (last_name !== undefined) u.last_name = String(last_name).trim();
+  if (first_name !== undefined) {
+    if (!isNonEmptyString(first_name)) return res.status(400).json({ error: "first_name must be non-empty" });
+    u.first_name = String(first_name).trim();
+  }
+  if (last_name !== undefined) {
+    if (!isNonEmptyString(last_name)) return res.status(400).json({ error: "last_name must be non-empty" });
+    u.last_name = String(last_name).trim();
+  }
   if (role !== undefined) {
     const nr = String(role).trim();
     if (!ROLES.includes(nr)) return res.status(400).json({ error: `role must be one of: ${ROLES.join(", ")}` });
     u.role = nr;
   }
-  if (blocked !== undefined) u.blocked = Boolean(blocked);
-  if (password !== undefined) u.passwordHash = await bcrypt.hash(String(password), 10);
+  if (blocked !== undefined) {
+    const shouldBlock = Boolean(blocked);
+    if (u.id === req.user.sub && shouldBlock) {
+      return res.status(400).json({ error: "admin cannot block itself" });
+    }
+    u.blocked = shouldBlock;
+    if (shouldBlock) revokeUserRefreshTokens(u.id);
+  }
+  if (password !== undefined) {
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.ok) return res.status(400).json({ error: passwordValidation.error });
+    u.passwordHash = await bcrypt.hash(passwordValidation.value, 10);
+    revokeUserRefreshTokens(u.id);
+  }
 
   res.json(publicUser(u));
 });
@@ -232,7 +326,11 @@ app.put("/api/users/:id", authMiddleware, roleMiddleware(["admin"]), async (req,
 app.delete("/api/users/:id", authMiddleware, roleMiddleware(["admin"]), (req, res) => {
   const u = users.find((x) => x.id === req.params.id);
   if (!u) return res.status(404).json({ error: "user not found" });
+  if (u.id === req.user.sub) {
+    return res.status(400).json({ error: "admin cannot block itself" });
+  }
   u.blocked = true;
+  revokeUserRefreshTokens(u.id);
   res.json(publicUser(u));
 });
 
@@ -240,6 +338,9 @@ app.delete("/api/users/:id", authMiddleware, roleMiddleware(["admin"]), (req, re
 app.post("/api/products", authMiddleware, roleMiddleware(["seller", "admin"]), (req, res) => {
   const { title, category, description, price } = req.body || {};
   if (!requireBodyFields(res, req.body || {}, ["title", "category", "description", "price"])) return;
+  if (!isNonEmptyString(title) || !isNonEmptyString(category) || !isNonEmptyString(description)) {
+    return res.status(400).json({ error: "title, category and description must be non-empty strings" });
+  }
 
   const numPrice = Number(price);
   if (!Number.isFinite(numPrice) || numPrice < 0) {
@@ -272,9 +373,18 @@ app.put("/api/products/:id", authMiddleware, roleMiddleware(["seller", "admin"])
   if (!p) return res.status(404).json({ error: "product not found" });
 
   const { title, category, description, price } = req.body || {};
-  if (title !== undefined) p.title = String(title).trim();
-  if (category !== undefined) p.category = String(category).trim();
-  if (description !== undefined) p.description = String(description).trim();
+  if (title !== undefined) {
+    if (!isNonEmptyString(title)) return res.status(400).json({ error: "title must be non-empty" });
+    p.title = String(title).trim();
+  }
+  if (category !== undefined) {
+    if (!isNonEmptyString(category)) return res.status(400).json({ error: "category must be non-empty" });
+    p.category = String(category).trim();
+  }
+  if (description !== undefined) {
+    if (!isNonEmptyString(description)) return res.status(400).json({ error: "description must be non-empty" });
+    p.description = String(description).trim();
+  }
   if (price !== undefined) {
     const numPrice = Number(price);
     if (!Number.isFinite(numPrice) || numPrice < 0) {

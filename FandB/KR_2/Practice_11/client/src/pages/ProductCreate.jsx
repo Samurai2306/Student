@@ -29,8 +29,8 @@ export default function ProductCreatePage() {
     setBusy(true)
     setError('')
     try {
-      const p = await api.createProduct({ title, category, description, price: Number(price) })
-      nav(`/products/${p.id}`, { replace: true })
+      await api.createProduct({ title, category, description, price: Number(price) })
+      nav('/products', { replace: true, state: { created: true } })
     } catch (e2) {
       setError(e2?.response?.data?.error || 'Не удалось создать товар')
     } finally {

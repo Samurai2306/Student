@@ -81,9 +81,9 @@ export default function ProductEditPage() {
 
   return (
     <div className="card row">
-      <div className="actions" style={{ justifyContent: 'space-between' }}>
+      <div className="actions spread">
         <div>
-          <h2 style={{ margin: 0 }}>Редактирование</h2>
+          <h2 className="title-no-margin">Редактирование</h2>
           <div className="muted">ID: {id}</div>
         </div>
         {canDelete && (

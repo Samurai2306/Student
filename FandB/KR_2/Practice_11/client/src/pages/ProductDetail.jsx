@@ -38,12 +38,12 @@ export default function ProductDetailPage() {
 
   return (
     <div className="card row">
-      <div className="actions" style={{ justifyContent: 'space-between' }}>
+      <div className="actions spread">
         <div>
-          <h2 style={{ margin: 0 }}>{product.title}</h2>
+          <h2 className="title-no-margin">{product.title}</h2>
           <div className="muted">{product.category}</div>
         </div>
-        <div style={{ fontWeight: 700 }}>{product.price} ₽</div>
+        <div className="strong">{product.price} ₽</div>
       </div>
       <div>{product.description}</div>
       <div className="actions">

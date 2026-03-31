@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import * as api from '../api/endpoints'
 import { useAuth } from '../state/AuthContext'
 
 export default function ProductsPage() {
   const { user, loading } = useAuth()
   const nav = useNavigate()
+  const location = useLocation()
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(true)
@@ -47,29 +48,30 @@ export default function ProductsPage() {
   return (
     <div className="row">
       <div className="card row">
-        <div className="actions" style={{ justifyContent: 'space-between' }}>
+        <div className="actions spread">
           <div>
-            <h2 style={{ margin: 0 }}>Товары</h2>
+            <h2 className="title-no-margin">Товары</h2>
             <div className="muted">Список доступных товаров</div>
           </div>
           <button className="btn primary" onClick={onCreateClick} disabled={loading}>
             Создать товар
           </button>
         </div>
+        {location.state?.created && <div className="notice">Товар успешно создан и добавлен в список.</div>}
         {busy && <div className="muted">Загрузка...</div>}
         {error && <div className="error">{error}</div>}
         {!busy && !error && items.length === 0 && <div className="muted">Пока товаров нет</div>}
         <div className="row">
           {items.map((p) => (
             <div className="card" key={p.id}>
-              <div className="actions" style={{ justifyContent: 'space-between' }}>
-                <div className="row" style={{ gap: 4 }}>
-                  <div style={{ fontWeight: 700 }}>{p.title}</div>
+              <div className="actions spread">
+                <div className="row stack-4">
+                  <div className="strong">{p.title}</div>
                   <div className="muted">{p.category}</div>
                 </div>
-                <div style={{ fontWeight: 700 }}>{p.price} ₽</div>
+                <div className="strong">{p.price} ₽</div>
               </div>
-              <div className="actions" style={{ marginTop: 10 }}>
+              <div className="actions mt-10">
                 <Link className="btn" to={`/products/${p.id}`}>
                   Открыть
                 </Link>
@@ -82,9 +84,6 @@ export default function ProductsPage() {
             </div>
           ))}
         </div>
-      </div>
-      <div className="muted">
-        Примечание: в практике 11 доступ к товарам/пользователям ограничен ролями (RBAC).
       </div>
     </div>
   )

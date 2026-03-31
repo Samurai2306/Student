@@ -78,12 +78,12 @@ export default function UsersPage() {
       {error && <div className="error">{error}</div>}
 
       {!busy && (
-        <div className="row" style={{ gap: 12 }}>
+        <div className="row stack-12">
           {items.map((u) => (
-            <div className="card row" key={u.id} style={{ gap: 10 }}>
-              <div className="actions" style={{ justifyContent: 'space-between' }}>
-                <div className="row" style={{ gap: 4 }}>
-                  <div style={{ fontWeight: 700 }}>{u.email}</div>
+            <div className="card row stack-10" key={u.id}>
+              <div className="actions spread top">
+                <div className="row stack-4">
+                  <div className="strong">{u.email}</div>
                   <div className="muted">
                     {u.first_name} {u.last_name} · id: {u.id}
                   </div>
@@ -98,12 +98,6 @@ export default function UsersPage() {
                     value={u.role}
                     onChange={(e) => updateRow(u.id, { role: e.target.value })}
                     disabled={savingId === u.id}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: 10,
-                      border: '1px solid rgba(0,0,0,0.18)',
-                      font: 'inherit',
-                    }}
                   >
                     {ROLES.map((r) => (
                       <option key={r} value={r}>
@@ -118,12 +112,6 @@ export default function UsersPage() {
                     value={String(Boolean(u.blocked))}
                     onChange={(e) => updateRow(u.id, { blocked: e.target.value === 'true' })}
                     disabled={savingId === u.id}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: 10,
-                      border: '1px solid rgba(0,0,0,0.18)',
-                      font: 'inherit',
-                    }}
                   >
                     <option value="false">false</option>
                     <option value="true">true</option>
