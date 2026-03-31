@@ -19,6 +19,7 @@
 
 ### Сервер
 
+
 ```bash
 cd KR_2/Practice_11/server
 npm i
