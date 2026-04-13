@@ -1,0 +1,11 @@
+.env
+app.db
+__pycache__/
+*.py[cod]
+.Python
+.venv/
+venv/
+_listing.txt
+_pdf_extract.txt
+_smoke.db
+ОПИСАНИЕ_РАБОТЫ.md
