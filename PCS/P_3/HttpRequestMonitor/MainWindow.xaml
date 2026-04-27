@@ -1,0 +1,254 @@
+﻿<Window x:Class="HttpRequestMonitor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:oxy="http://oxyplot.org/wpf"
+        mc:Ignorable="d"
+        Title="Система мониторинга HTTP-запросов"
+        Width="1280"
+        Height="820"
+        MinWidth="1050"
+        MinHeight="720"
+        Background="#F4F6F8">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock FontSize="24"
+                   FontWeight="SemiBold"
+                   Foreground="#172033"
+                   Text="Система мониторинга HTTP-запросов" />
+
+        <Grid Grid.Row="1" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Padding="14"
+                    Background="White"
+                    BorderBrush="#D8DEE9"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                <StackPanel>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="Управление сервером" />
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock VerticalAlignment="Center" Text="Порт:" />
+                        <TextBox Grid.Column="1"
+                                 Margin="8,0,12,0"
+                                 Padding="6"
+                                 Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Column="2"
+                                Width="100"
+                                Margin="0,0,8,0"
+                                Command="{Binding StartServerCommand}"
+                                Content="Запустить" />
+                        <Button Grid.Column="3"
+                                Width="100"
+                                Command="{Binding StopServerCommand}"
+                                Content="Остановить" />
+                    </Grid>
+                    <TextBlock Margin="0,10,0,0"
+                               Foreground="#4A5568"
+                               Text="{Binding ServerStatus}" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1"
+                    Margin="16,0,0,0"
+                    Padding="14"
+                    Background="White"
+                    BorderBrush="#D8DEE9"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                <StackPanel>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="HTTP-клиент" />
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="110" />
+                            <ColumnDefinition Width="120" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Padding="6"
+                                 Text="{Binding ClientUrl, UpdateSourceTrigger=PropertyChanged}" />
+                        <ComboBox Grid.Column="1"
+                                  Margin="8,0"
+                                  Padding="6"
+                                  ItemsSource="{Binding MethodOptions}"
+                                  SelectedItem="{Binding SelectedMethod}" />
+                        <Button Grid.Column="2"
+                                Command="{Binding SendRequestCommand}"
+                                Content="Отправить" />
+                    </Grid>
+                    <TextBlock Margin="0,12,0,4" Text="JSON-тело POST-запроса" />
+                    <TextBox Height="84"
+                             AcceptsReturn="True"
+                             FontFamily="Consolas"
+                             HorizontalScrollBarVisibility="Auto"
+                             Text="{Binding JsonBody, UpdateSourceTrigger=PropertyChanged}"
+                             VerticalScrollBarVisibility="Auto" />
+                    <TextBlock Margin="0,12,0,4" Text="Ответ" />
+                    <TextBox Height="90"
+                             AcceptsReturn="True"
+                             FontFamily="Consolas"
+                             IsReadOnly="True"
+                             Text="{Binding ClientResponse}"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto" />
+                </StackPanel>
+            </Border>
+
+            <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0,16,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Padding="14"
+                        Background="White"
+                        BorderBrush="#D8DEE9"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Статистика" />
+                        <UniformGrid Margin="0,12,0,0" Columns="3">
+                            <Border Margin="0,0,8,0" Padding="10" Background="#EEF4FF" CornerRadius="6">
+                                <StackPanel>
+                                    <TextBlock Foreground="#4A5568" Text="GET" />
+                                    <TextBlock FontSize="24"
+                                               FontWeight="Bold"
+                                               Text="{Binding TotalGetRequests}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Margin="0,0,8,0" Padding="10" Background="#F0FFF4" CornerRadius="6">
+                                <StackPanel>
+                                    <TextBlock Foreground="#4A5568" Text="POST" />
+                                    <TextBlock FontSize="24"
+                                               FontWeight="Bold"
+                                               Text="{Binding TotalPostRequests}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Padding="10" Background="#FFF7ED" CornerRadius="6">
+                                <StackPanel>
+                                    <TextBlock Foreground="#4A5568" Text="Среднее время" />
+                                    <TextBlock FontSize="24"
+                                               FontWeight="Bold"
+                                               Text="{Binding AverageProcessingTimeMs, StringFormat={}{0:F1} ms}" />
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1"
+                        Margin="0,16,0,0"
+                        Padding="14"
+                        Background="White"
+                        BorderBrush="#D8DEE9"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="График нагрузки" />
+                        <oxy:PlotView Grid.Row="1"
+                                      Margin="0,12,0,0"
+                                      Model="{Binding LoadPlotModel}" />
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="1"
+                        Grid.RowSpan="2"
+                        Margin="16,0,0,0"
+                        Padding="14"
+                        Background="White"
+                        BorderBrush="#D8DEE9"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="2*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <DockPanel LastChildFill="False">
+                            <TextBlock DockPanel.Dock="Left"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="Логи" />
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Метод" />
+                                <ComboBox Width="90"
+                                          Margin="0,0,12,0"
+                                          ItemsSource="{Binding MethodFilters}"
+                                          SelectedItem="{Binding SelectedMethodFilter}" />
+                                <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Статус" />
+                                <ComboBox Width="90"
+                                          Margin="0,0,12,0"
+                                          ItemsSource="{Binding StatusFilters}"
+                                          SelectedItem="{Binding SelectedStatusFilter}" />
+                                <Button Command="{Binding SaveLogsCommand}" Content="Сохранить" />
+                            </StackPanel>
+                        </DockPanel>
+
+                        <DataGrid Grid.Row="1"
+                                  Margin="0,12,0,0"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  IsReadOnly="True"
+                                  ItemsSource="{Binding FilteredLogs}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Width="145"
+                                                    Binding="{Binding Timestamp, StringFormat={}{0:HH:mm:ss}}"
+                                                    Header="Время" />
+                                <DataGridTextColumn Width="75" Binding="{Binding Source}" Header="Источник" />
+                                <DataGridTextColumn Width="70" Binding="{Binding Method}" Header="Метод" />
+                                <DataGridTextColumn Width="70" Binding="{Binding StatusCode}" Header="Статус" />
+                                <DataGridTextColumn Width="95"
+                                                    Binding="{Binding ProcessingTimeMs, StringFormat={}{0:F1}}"
+                                                    Header="мс" />
+                                <DataGridTextColumn Width="*" Binding="{Binding Url}" Header="URL" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Grid.Row="2"
+                                   Margin="0,12,0,4"
+                                   FontWeight="SemiBold"
+                                   Text="Текстовый журнал" />
+                        <TextBox Grid.Row="3"
+                                 AcceptsReturn="True"
+                                 FontFamily="Consolas"
+                                 FontSize="12"
+                                 IsReadOnly="True"
+                                 Text="{Binding LogText}"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
