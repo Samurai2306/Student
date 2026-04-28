@@ -1,0 +1,19 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# local sqlite db
+app.db
+*.sqlite3
+
+# alembic
+alembic/.venv/
+
+# IDE
+.idea/
+.vscode/

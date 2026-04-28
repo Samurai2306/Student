@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const { Pool } = require("pg");
+const swaggerUi = require("swagger-ui-express");
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3005;
 const DATABASE_URL =
@@ -31,6 +32,114 @@ function nowUnixMs() {
 
 const app = express();
 app.use(express.json());
+
+const openapi = {
+  openapi: "3.0.3",
+  info: {
+    title: "Practice 19 — PostgreSQL Users API",
+    version: "1.0.0",
+    description: "CRUD API пользователей с хранением данных в PostgreSQL."
+  },
+  servers: [{ url: `http://localhost:${PORT}` }],
+  paths: {
+    "/health": {
+      get: {
+        summary: "Health check",
+        responses: {
+          200: { description: "OK" },
+          500: { description: "DB error" }
+        }
+      }
+    },
+    "/api/users": {
+      get: {
+        summary: "Получить список пользователей",
+        responses: {
+          200: {
+            description: "OK",
+            content: { "application/json": { schema: { type: "array", items: { $ref: "#/components/schemas/User" } } } }
+          }
+        }
+      },
+      post: {
+        summary: "Создать пользователя",
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { $ref: "#/components/schemas/UserCreate" } } }
+        },
+        responses: {
+          201: { description: "Created", content: { "application/json": { schema: { $ref: "#/components/schemas/User" } } } },
+          400: { description: "Validation error" }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+      get: {
+        summary: "Получить пользователя по id",
+        responses: {
+          200: { description: "OK", content: { "application/json": { schema: { $ref: "#/components/schemas/User" } } } },
+          404: { description: "Not found" }
+        }
+      },
+      patch: {
+        summary: "Обновить пользователя (частично)",
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { $ref: "#/components/schemas/UserUpdate" } } }
+        },
+        responses: {
+          200: { description: "OK", content: { "application/json": { schema: { $ref: "#/components/schemas/User" } } } },
+          400: { description: "Validation error" },
+          404: { description: "Not found" }
+        }
+      },
+      delete: {
+        summary: "Удалить пользователя",
+        responses: {
+          200: { description: "OK", content: { "application/json": { schema: { $ref: "#/components/schemas/User" } } } },
+          404: { description: "Not found" }
+        }
+      }
+    }
+  },
+  components: {
+    schemas: {
+      User: {
+        type: "object",
+        properties: {
+          id: { type: "integer" },
+          first_name: { type: "string" },
+          last_name: { type: "string" },
+          age: { type: "integer" },
+          created_at: { type: "integer", description: "Unix time (ms)" },
+          updated_at: { type: "integer", description: "Unix time (ms)" }
+        },
+        required: ["id", "first_name", "last_name", "age", "created_at", "updated_at"]
+      },
+      UserCreate: {
+        type: "object",
+        properties: {
+          first_name: { type: "string" },
+          last_name: { type: "string" },
+          age: { type: "integer", minimum: 0 }
+        },
+        required: ["first_name", "last_name", "age"]
+      },
+      UserUpdate: {
+        type: "object",
+        properties: {
+          first_name: { type: "string" },
+          last_name: { type: "string" },
+          age: { type: "integer", minimum: 0 }
+        }
+      }
+    }
+  }
+};
+
+app.get("/openapi.json", (req, res) => res.json(openapi));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapi, { explorer: true }));
 
 app.get("/health", async (req, res) => {
   try {
@@ -131,6 +240,7 @@ ensureSchema()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Practice 19 API running on http://localhost:${PORT}`);
+      console.log(`Swagger UI: http://localhost:${PORT}/docs`);
     });
   })
   .catch((e) => {
