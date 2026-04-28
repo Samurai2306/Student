@@ -1,0 +1,30 @@
+<div class="home-content">
+  <div class="section-title">
+    <h2>Быстрая заметка</h2>
+    <div class="hint"></div>
+  </div>
+  <form id="note-form" class="row">
+    <input class="col-9" type="text" id="note-input" placeholder="Например: купить молоко" required>
+    <button class="col-3 button primary" type="submit">Добавить</button>
+  </form>
+
+  <div class="section-title" style="margin-top: 1rem;">
+    <h2>Заметка с напоминанием</h2>
+    <div class="hint"></div>
+  </div>
+  <form id="reminder-form" class="row">
+    <input class="col-5" type="text" id="reminder-text" placeholder="Напомнить о..." required>
+    <input class="col-4" type="datetime-local" id="reminder-time" required>
+    <button class="col-3 button success" type="submit">Добавить</button>
+  </form>
+
+  <div class="section-title" style="margin-top: 1.5rem;">
+    <h2>Список заметок</h2>
+    <button id="clear-notes" class="button outline" type="button">Очистить</button>
+  </div>
+  <div id="notes-empty" class="empty" style="display:none;">
+    Пока нет заметок.
+  </div>
+  <ul id="notes-list" class="note-list"></ul>
+</div>
+

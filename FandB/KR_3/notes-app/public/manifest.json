@@ -1,0 +1,90 @@
+{
+  "name": "Мои заметки",
+  "short_name": "Заметки",
+  "dir": "ltr",
+  "id": "./",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#ffffff",
+  "theme_color": "#4285f4",
+  "description": "Офлайн‑заметки: localStorage, Service Worker, push‑уведомления, напоминания.",
+  "categories": ["productivity", "utilities"],
+  "lang": "ru",
+  "orientation": "portrait",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Главная",
+      "short_name": "Главная",
+      "description": "Открыть список заметок",
+      "url": "./?source=pwa#home",
+      "icons": [
+        {
+          "src": "icons/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "О приложении",
+      "short_name": "О нас",
+      "description": "Информация о приложении",
+      "url": "./?source=pwa#about",
+      "icons": [
+        {
+          "src": "icons/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/desktop-wide.jpg",
+      "sizes": "1024x563",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Главная страница (десктоп)"
+    },
+    {
+      "src": "screenshots/mobile.jpg",
+      "sizes": "470x1024",
+      "type": "image/jpeg",
+      "label": "Главная страница (мобильный)"
+    }
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
+

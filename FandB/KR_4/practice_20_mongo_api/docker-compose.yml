@@ -1,0 +1,11 @@
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata_pr20:/data/db
+
+volumes:
+  mongodata_pr20:
+

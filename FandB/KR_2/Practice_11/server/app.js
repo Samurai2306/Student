@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { nanoid } = require("nanoid");
+const { createClient } = require("redis");
 
 const app = express();
 app.use(express.json());
@@ -15,6 +16,10 @@ const REFRESH_EXPIRES_IN = process.env.REFRESH_EXPIRES_IN || "7d";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@practice11.local";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 
+const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+const USERS_CACHE_TTL_SEC = 60;
+const PRODUCTS_CACHE_TTL_SEC = 600;
+
 /** @type {Array<{id:string,email:string,first_name:string,last_name:string,passwordHash:string,role:"user"|"seller"|"admin",blocked:boolean}>} */
 const users = [];
 /** @type {Array<{id:string,title:string,category:string,description:string,price:number}>} */
@@ -24,6 +29,80 @@ const refreshTokens = new Set();
 
 const ROLES = /** @type {const} */ (["user", "seller", "admin"]);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const redisClient = createClient({
+  url: REDIS_URL,
+  socket: {
+    connectTimeout: 1000,
+    reconnectStrategy: () => new Error("redis disabled")
+  }
+});
+let redisReady = false;
+
+redisClient.on("error", () => {
+  redisReady = false;
+});
+
+async function initRedis() {
+  try {
+    await Promise.race([
+      redisClient.connect(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Redis connect timeout")), 1000))
+    ]);
+    redisReady = true;
+  } catch {
+    redisReady = false;
+  }
+}
+
+function cacheMiddleware(keyBuilder, ttlSec) {
+  return async (req, res, next) => {
+    if (!redisReady) return next();
+    try {
+      const key = keyBuilder(req);
+      const cached = await redisClient.get(key);
+      if (cached) {
+        res.setHeader("X-Cache", "HIT");
+        return res.json(JSON.parse(cached));
+      }
+      req.cacheKey = key;
+      req.cacheTTL = ttlSec;
+      res.setHeader("X-Cache", "MISS");
+      return next();
+    } catch {
+      return next();
+    }
+  };
+}
+
+async function saveToCache(key, data, ttlSec) {
+  if (!redisReady) return;
+  try {
+    await redisClient.set(key, JSON.stringify(data), { EX: ttlSec });
+  } catch {
+    // ignore
+  }
+}
+
+async function invalidateUsersCache(userId = null) {
+  if (!redisReady) return;
+  try {
+    await redisClient.del("users:all");
+    if (userId) await redisClient.del(`users:${userId}`);
+  } catch {
+    // ignore
+  }
+}
+
+async function invalidateProductsCache(productId = null) {
+  if (!redisReady) return;
+  try {
+    await redisClient.del("products:all");
+    if (productId) await redisClient.del(`products:${productId}`);
+  } catch {
+    // ignore
+  }
+}
 
 function authMiddleware(req, res, next) {
   const header = req.headers.authorization || "";
@@ -268,15 +347,31 @@ app.post("/api/auth/refresh", (req, res) => {
 });
 
 // --- Users (Practice 11, admin only) ---
-app.get("/api/users", authMiddleware, roleMiddleware(["admin"]), (req, res) => {
-  res.json(users.map(publicUser));
-});
+app.get(
+  "/api/users",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  cacheMiddleware(() => "users:all", USERS_CACHE_TTL_SEC),
+  async (req, res) => {
+    const data = users.map(publicUser);
+    await saveToCache(req.cacheKey, data, req.cacheTTL);
+    res.json(data);
+  }
+);
 
-app.get("/api/users/:id", authMiddleware, roleMiddleware(["admin"]), (req, res) => {
-  const u = users.find((x) => x.id === req.params.id);
-  if (!u) return res.status(404).json({ error: "user not found" });
-  res.json(publicUser(u));
-});
+app.get(
+  "/api/users/:id",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  cacheMiddleware((req) => `users:${req.params.id}`, USERS_CACHE_TTL_SEC),
+  async (req, res) => {
+    const u = users.find((x) => x.id === req.params.id);
+    if (!u) return res.status(404).json({ error: "user not found" });
+    const data = publicUser(u);
+    await saveToCache(req.cacheKey, data, req.cacheTTL);
+    res.json(data);
+  }
+);
 
 app.put("/api/users/:id", authMiddleware, roleMiddleware(["admin"]), async (req, res) => {
   const u = users.find((x) => x.id === req.params.id);
@@ -320,10 +415,11 @@ app.put("/api/users/:id", authMiddleware, roleMiddleware(["admin"]), async (req,
     revokeUserRefreshTokens(u.id);
   }
 
+  await invalidateUsersCache(u.id);
   res.json(publicUser(u));
 });
 
-app.delete("/api/users/:id", authMiddleware, roleMiddleware(["admin"]), (req, res) => {
+app.delete("/api/users/:id", authMiddleware, roleMiddleware(["admin"]), async (req, res) => {
   const u = users.find((x) => x.id === req.params.id);
   if (!u) return res.status(404).json({ error: "user not found" });
   if (u.id === req.user.sub) {
@@ -331,11 +427,12 @@ app.delete("/api/users/:id", authMiddleware, roleMiddleware(["admin"]), (req, re
   }
   u.blocked = true;
   revokeUserRefreshTokens(u.id);
+  await invalidateUsersCache(u.id);
   res.json(publicUser(u));
 });
 
 // --- Products (Practice 7) ---
-app.post("/api/products", authMiddleware, roleMiddleware(["seller", "admin"]), (req, res) => {
+app.post("/api/products", authMiddleware, roleMiddleware(["seller", "admin"]), async (req, res) => {
   const { title, category, description, price } = req.body || {};
   if (!requireBodyFields(res, req.body || {}, ["title", "category", "description", "price"])) return;
   if (!isNonEmptyString(title) || !isNonEmptyString(category) || !isNonEmptyString(description)) {
@@ -355,20 +452,37 @@ app.post("/api/products", authMiddleware, roleMiddleware(["seller", "admin"]), (
     price: numPrice,
   };
   products.push(product);
+  await invalidateProductsCache(product.id);
   res.status(201).json(publicProduct(product));
 });
 
-app.get("/api/products", authMiddleware, roleMiddleware(["user", "seller", "admin"]), (req, res) => {
-  res.json(products.map(publicProduct));
-});
+app.get(
+  "/api/products",
+  authMiddleware,
+  roleMiddleware(["user", "seller", "admin"]),
+  cacheMiddleware(() => "products:all", PRODUCTS_CACHE_TTL_SEC),
+  async (req, res) => {
+    const data = products.map(publicProduct);
+    await saveToCache(req.cacheKey, data, req.cacheTTL);
+    res.json(data);
+  }
+);
 
-app.get("/api/products/:id", authMiddleware, roleMiddleware(["user", "seller", "admin"]), (req, res) => {
-  const p = products.find((x) => x.id === req.params.id);
-  if (!p) return res.status(404).json({ error: "product not found" });
-  res.json(publicProduct(p));
-});
+app.get(
+  "/api/products/:id",
+  authMiddleware,
+  roleMiddleware(["user", "seller", "admin"]),
+  cacheMiddleware((req) => `products:${req.params.id}`, PRODUCTS_CACHE_TTL_SEC),
+  async (req, res) => {
+    const p = products.find((x) => x.id === req.params.id);
+    if (!p) return res.status(404).json({ error: "product not found" });
+    const data = publicProduct(p);
+    await saveToCache(req.cacheKey, data, req.cacheTTL);
+    res.json(data);
+  }
+);
 
-app.put("/api/products/:id", authMiddleware, roleMiddleware(["seller", "admin"]), (req, res) => {
+app.put("/api/products/:id", authMiddleware, roleMiddleware(["seller", "admin"]), async (req, res) => {
   const p = products.find((x) => x.id === req.params.id);
   if (!p) return res.status(404).json({ error: "product not found" });
 
@@ -392,17 +506,26 @@ app.put("/api/products/:id", authMiddleware, roleMiddleware(["seller", "admin"])
     }
     p.price = numPrice;
   }
+  await invalidateProductsCache(p.id);
   res.json(publicProduct(p));
 });
 
-app.delete("/api/products/:id", authMiddleware, roleMiddleware(["admin"]), (req, res) => {
+app.delete("/api/products/:id", authMiddleware, roleMiddleware(["admin"]), async (req, res) => {
   const idx = products.findIndex((x) => x.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: "product not found" });
   const [deleted] = products.splice(idx, 1);
+  await invalidateProductsCache(deleted.id);
   res.json(publicProduct(deleted));
 });
 
-app.listen(PORT, () => {
-  console.log(`Practice 11 server listening on http://localhost:${PORT}`);
+initRedis().finally(() => {
+  app.listen(PORT, () => {
+    console.log(`Practice 11 server listening on http://localhost:${PORT}`);
+    if (redisReady) {
+      console.log(`Redis cache enabled (${REDIS_URL})`);
+    } else {
+      console.log("Redis cache disabled (Redis not connected)");
+    }
+  });
 });
 

@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: kr4_practice19
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_pr19:/var/lib/postgresql/data
+
+volumes:
+  pgdata_pr19:
+

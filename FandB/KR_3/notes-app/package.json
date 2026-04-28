@@ -1,0 +1,20 @@
+{
+  "name": "kr3-notes-pwa",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "generate:assets": "node scripts/generate-assets.js",
+    "dev": "node server/server.js",
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "pngjs": "^7.0.0",
+    "socket.io": "^4.8.1",
+    "web-push": "^3.6.7"
+  }
+}
+
