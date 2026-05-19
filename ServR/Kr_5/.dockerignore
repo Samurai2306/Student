@@ -1,0 +1,8 @@
+.venv
+.git
+__pycache__
+.pytest_cache
+*.pyc
+.env
+_pdf_extract.txt
+_assignment_full.txt
