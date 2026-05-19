@@ -1,0 +1,43 @@
+{
+  "name": "kr5-social-feed-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "jest --coverage",
+    "test:coverage": "jest --coverage",
+    "test:watch": "npm test -- --watchAll=false"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "redis": "^5.8.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "jest": "^30.0.5",
+    "supertest": "^7.1.4"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "src/lib/**/*.js",
+      "src/middleware/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 50,
+        "functions": 50,
+        "branches": 40,
+        "statements": 50
+      }
+    }
+  }
+}

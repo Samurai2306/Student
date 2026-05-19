@@ -1,3 +1,4 @@
+const path = require("path");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -216,8 +217,11 @@ function seedAdminUser() {
 
 seedAdminUser();
 
+const cacheDemoDir = path.join(__dirname, "..", "..", "..", "KR_4", "practice_21_redis_cache", "public");
+app.use("/cache-demo", express.static(cacheDemoDir));
+
 app.get("/health", (req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, redis: redisReady });
 });
 
 function generateAccessToken(user) {
@@ -526,6 +530,7 @@ initRedis().finally(() => {
     } else {
       console.log("Redis cache disabled (Redis not connected)");
     }
+    console.log(`Practice 21 cache demo: http://localhost:${PORT}/cache-demo/`);
   });
 });
 

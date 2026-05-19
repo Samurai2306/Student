@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const swaggerUi = require("swagger-ui-express");
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3006;
-const MONGO_URL = process.env.MONGO_URL || "mongodb://localhost:27017/kr4_practice20";
+const MONGO_URL = process.env.MONGO_URL || "mongodb://localhost:27018/kr4_practice20";
 
 const app = express();
 app.use(express.json());

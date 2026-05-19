@@ -8,9 +8,10 @@
 cd KR_4/practice_22_load_balancer/backend
 npm i
 
-$env:PORT=3000; $env:SERVER_ID="backend-1"; npm start
-$env:PORT=3001; $env:SERVER_ID="backend-2"; npm start
-$env:PORT=3002; $env:SERVER_ID="backend-3"; npm start
+# Порты 3010–3012, если 3000–3002 заняты (например, KR5 на :3000)
+$env:PORT=3010; $env:SERVER_ID="backend-1"; npm start
+$env:PORT=3011; $env:SERVER_ID="backend-2"; npm start
+$env:PORT=3012; $env:SERVER_ID="backend-3"; npm start
 ```
 
 ## Nginx (балансировка)

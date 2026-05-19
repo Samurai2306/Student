@@ -23,6 +23,8 @@ npm start
 
 ## Переменные окружения
 
-- `MONGO_URL` (пример: `mongodb://localhost:27017/kr4_practice20`)
+- `MONGO_URL` (пример: `mongodb://localhost:27018/kr4_practice20`)
+
+> Docker пробрасывает MongoDB на порт **27018**, если **27017** занят локальной установкой.
 - `PORT`
 

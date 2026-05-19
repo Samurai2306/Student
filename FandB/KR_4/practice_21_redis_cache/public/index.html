@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Practice 21 — Redis cache</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Practice 21: кэш Redis</h1>
+      <p class="sub">Practice 11 server · заголовок <code>X-Cache</code></p>
+    </header>
+
+    <section class="block">
+      <h2>Подключение</h2>
+      <label class="row">
+        <span>API</span>
+        <input id="apiBase" type="text" />
+      </label>
+      <p id="redisStatus" class="status">Redis: проверка…</p>
+    </section>
+
+    <section class="block">
+      <h2>Вход</h2>
+      <div class="row">
+        <input id="email" type="email" placeholder="email" value="admin@practice11.local" />
+        <input id="password" type="password" placeholder="пароль" value="admin123" />
+        <button type="button" id="btnLogin">Войти</button>
+      </div>
+      <p id="authMsg" class="msg"></p>
+    </section>
+
+    <section class="block">
+      <h2>Запросы</h2>
+      <div class="btns">
+        <button type="button" data-get="/api/users">GET /api/users</button>
+        <button type="button" data-get="/api/products">GET /api/products</button>
+      </div>
+      <p class="tip">Нажмите два раза подряд — сначала MISS, потом HIT</p>
+
+      <div class="cache-row">
+        <span>X-Cache:</span>
+        <strong id="cacheBadge">—</strong>
+        <span id="metaMs" class="muted"></span>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>Инвалидация</h2>
+      <div class="row">
+        <input id="invalidateUserId" placeholder="user id" />
+        <input id="newFirstName" value="Updated" placeholder="first_name" />
+        <button type="button" id="btnInvalidate" class="secondary">PUT user</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>Ответ</h2>
+      <pre id="responseBody">—</pre>
+    </section>
+
+    <section class="block">
+      <h2>Лог</h2>
+      <ul id="log"></ul>
+    </section>
+
+    <script src="app.js"></script>
+  </body>
+</html>

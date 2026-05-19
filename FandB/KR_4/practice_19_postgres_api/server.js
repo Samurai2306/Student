@@ -6,7 +6,7 @@ const swaggerUi = require("swagger-ui-express");
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3005;
 const DATABASE_URL =
-  process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/kr4_practice19";
+  process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5433/kr4_practice19";
 
 const pool = new Pool({
   connectionString: DATABASE_URL,

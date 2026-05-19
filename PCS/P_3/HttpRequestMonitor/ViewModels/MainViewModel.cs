@@ -17,6 +17,8 @@ namespace HttpRequestMonitor.ViewModels;
 
 public sealed class MainViewModel : ViewModelBase, IDisposable
 {
+    private const int LoadChartWindowMinutes = 20;
+
     private readonly HttpClient _httpClient = new();
     private readonly HttpServer _httpServer = new();
     private readonly SemaphoreSlim _logFileLock = new(1, 1);
@@ -52,6 +54,7 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         StopServerCommand = new RelayCommand(_ => StopServer(), _ => IsServerRunning);
         SendRequestCommand = new RelayCommand(_ => SendRequestAsync());
         SaveLogsCommand = new RelayCommand(_ => SaveLogsAsync());
+        DownloadLogsCommand = new RelayCommand(_ => DownloadLogsAsync());
     }
 
     public ObservableCollection<string> MethodOptions { get; }
@@ -71,6 +74,8 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
     public ICommand SendRequestCommand { get; }
 
     public ICommand SaveLogsCommand { get; }
+
+    public ICommand DownloadLogsCommand { get; }
 
     public string Port
     {
@@ -345,26 +350,64 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
 
     private void UpdatePlot()
     {
-        var series = new LineSeries
+        var endMinute = TruncateToMinute(DateTime.Now);
+        var startMinute = endMinute.AddMinutes(-(LoadChartWindowMinutes - 1));
+
+        var countsByMinute = Logs
+            .GroupBy(log => TruncateToMinute(log.Timestamp))
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        var labels = new List<string>(LoadChartWindowMinutes);
+        var maxCount = 0;
+
+        for (var minute = startMinute; minute <= endMinute; minute = minute.AddMinutes(1))
         {
-            Title = "Запросы",
-            MarkerType = MarkerType.Circle,
-            MarkerSize = 3
+            labels.Add(minute.ToString("HH:mm"));
+            var count = countsByMinute.TryGetValue(minute, out var value) ? value : 0;
+            maxCount = Math.Max(maxCount, count);
+        }
+
+        var categoryAxis = LoadPlotModel.Axes.OfType<CategoryAxis>().First();
+        categoryAxis.Labels.Clear();
+        foreach (var label in labels)
+        {
+            categoryAxis.Labels.Add(label);
+        }
+
+        categoryAxis.Minimum = -0.5;
+        categoryAxis.Maximum = labels.Count - 0.5;
+
+        var valueAxis = LoadPlotModel.Axes.OfType<LinearAxis>().First(axis => axis.Position == AxisPosition.Left);
+        valueAxis.Minimum = 0;
+        valueAxis.Maximum = Math.Max(5, maxCount + 1);
+        valueAxis.MajorStep = valueAxis.Maximum <= 10 ? 1 : Math.Ceiling(valueAxis.Maximum / 5);
+        valueAxis.MinorStep = valueAxis.MajorStep <= 1 ? 1 : valueAxis.MajorStep / 2;
+
+        var series = new BarSeries
+        {
+            Title = "Запросы / мин",
+            FillColor = OxyColor.FromRgb(66, 133, 244),
+            StrokeColor = OxyColor.FromRgb(41, 98, 209),
+            StrokeThickness = 1,
+            LabelFormatString = "{0}",
+            LabelPlacement = LabelPlacement.Inside,
+            LabelColor = OxyColors.White
         };
 
-        var groupedLogs = Logs
-            .GroupBy(log => new DateTime(log.Timestamp.Year, log.Timestamp.Month, log.Timestamp.Day, log.Timestamp.Hour, log.Timestamp.Minute, 0))
-            .OrderBy(group => group.Key);
-
-        foreach (var group in groupedLogs)
+        for (var i = 0; i < labels.Count; i++)
         {
-            series.Points.Add(new DataPoint(DateTimeAxis.ToDouble(group.Key), group.Count()));
+            var minute = startMinute.AddMinutes(i);
+            var count = countsByMinute.TryGetValue(minute, out var value) ? value : 0;
+            series.Items.Add(new BarItem { Value = count });
         }
 
         LoadPlotModel.Series.Clear();
         LoadPlotModel.Series.Add(series);
         LoadPlotModel.InvalidatePlot(true);
     }
+
+    private static DateTime TruncateToMinute(DateTime value) =>
+        new(value.Year, value.Month, value.Day, value.Hour, value.Minute, 0);
 
     private async Task AppendLogToFileAsync(LogEntry entry)
     {
@@ -424,6 +467,85 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
         }
     }
 
+    private async Task DownloadLogsAsync()
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        if (Logs.Count == 0)
+        {
+            ServerStatus = "Нет записей для скачивания.";
+            return;
+        }
+
+        var downloadsPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "Downloads");
+        Directory.CreateDirectory(downloadsPath);
+
+        var exportPath = Path.Combine(
+            downloadsPath,
+            $"http-logs-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt");
+
+        List<string> lines;
+        await _logFileLock.WaitAsync();
+        try
+        {
+            lines = Logs.Select(FormatLogForFile).ToList();
+            await File.WriteAllLinesAsync(exportPath, lines);
+        }
+        catch (Exception ex)
+        {
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+                ServerStatus = $"Не удалось создать файл логов: {ex.Message}");
+            return;
+        }
+        finally
+        {
+            try
+            {
+                _logFileLock.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+
+        await Application.Current.Dispatcher.InvokeAsync(() =>
+            ServerStatus = $"Логи скачаны: {exportPath}");
+
+        OpenExportedLogFile(exportPath);
+    }
+
+    private static void OpenExportedLogFile(string path)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{path}\"",
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+            }
+        }
+    }
+
     private void RaiseServerCommandStates()
     {
         if (StartServerCommand is RelayCommand startCommand)
@@ -439,21 +561,36 @@ public sealed class MainViewModel : ViewModelBase, IDisposable
 
     private static PlotModel CreatePlotModel()
     {
-        var plotModel = new PlotModel { Title = "Пиковая нагрузка по минутам" };
-        plotModel.Axes.Add(new DateTimeAxis
+        var plotModel = new PlotModel
+        {
+            Title = "Пиковая нагрузка по минутам",
+            PlotMargins = new OxyThickness(52, 4, 16, 56),
+            IsLegendVisible = false
+        };
+
+        plotModel.Axes.Add(new CategoryAxis
         {
             Position = AxisPosition.Bottom,
-            StringFormat = "HH:mm",
-            Title = "Время"
+            Title = "Время (последние 20 мин)",
+            Angle = -35,
+            MajorStep = 1,
+            GapWidth = 0.25,
+            IsZoomEnabled = false,
+            IsPanEnabled = false
         });
+
         plotModel.Axes.Add(new LinearAxis
         {
             Position = AxisPosition.Left,
+            Title = "Запросов в минуту",
             Minimum = 0,
+            Maximum = 5,
             MajorStep = 1,
-            Title = "Запросы"
+            MinorStep = 1,
+            IsZoomEnabled = false,
+            IsPanEnabled = false
         });
-        plotModel.Series.Add(new LineSeries { Title = "Запросы", MarkerType = MarkerType.Circle });
+
         return plotModel;
     }
 

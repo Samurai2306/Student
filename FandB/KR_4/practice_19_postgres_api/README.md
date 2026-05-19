@@ -23,6 +23,8 @@ npm start
 
 ## Переменные окружения
 
-- `DATABASE_URL` (пример: `postgres://postgres:postgres@localhost:5432/kr4_practice19`)
+- `DATABASE_URL` (пример: `postgres://postgres:postgres@localhost:5433/kr4_practice19`)
+
+> Если на компьютере уже установлен PostgreSQL на порту **5432**, Docker поднимает БД на **5433** (см. `docker-compose.yml`).
 - `PORT`
 
