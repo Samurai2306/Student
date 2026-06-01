@@ -1,0 +1,42 @@
+﻿@inherits LayoutComponentBase
+@inject ThemeService Theme
+@implements IDisposable
+
+<div class="app-shell">
+    <header class="app-header">
+        <div class="container-fluid d-flex flex-wrap align-items-center justify-content-between gap-3 py-3">
+            <a class="brand" href="">InternetShop</a>
+            <nav class="nav-links">
+                <NavLink href="" Match="NavLinkMatch.All">Товары</NavLink>
+                <NavLink href="products/add">Добавить</NavLink>
+            </nav>
+            <button type="button" class="btn btn-theme" @onclick="ToggleTheme" title="Сменить тему">
+                @(Theme.IsDark ? "Светлая" : "Тёмная")
+            </button>
+        </div>
+    </header>
+
+    <main class="container-fluid py-4">
+        @Body
+    </main>
+
+    <footer class="app-footer text-center py-3">
+        <small>Практическое занятие №6 · Blazor WebAssembly + ASP.NET Core API</small>
+    </footer>
+</div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Theme.InitializeAsync();
+            Theme.OnChanged += StateHasChanged;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleTheme() => await Theme.ToggleAsync();
+
+    public void Dispose() => Theme.OnChanged -= StateHasChanged;
+}

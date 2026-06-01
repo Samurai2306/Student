@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HttpRequestMonitor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+51176bb500f1f01c798931daa36257109df5224d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c143c52e779375a3cf72fded8b904aac9dee3045")]
 [assembly: System.Reflection.AssemblyProductAttribute("HttpRequestMonitor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HttpRequestMonitor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

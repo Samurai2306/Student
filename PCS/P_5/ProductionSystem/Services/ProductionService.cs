@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProductionSystem.Data;
+using ProductionSystem.Helpers;
 using ProductionSystem.Models;
 
 namespace ProductionSystem.Services;
@@ -147,8 +148,12 @@ public sealed class ProductionService
 
         await DeductMaterialsAsync(order.ProductId, order.Quantity);
 
+        var now = DateTime.Now;
+        var minutes = await CalculateProductionMinutesAsync(order.ProductId, order.Quantity, order.ProductionLineId);
+        order.StartDate = now;
+        order.EstimatedEndDate = now.AddMinutes(minutes);
         order.Status = WorkOrder.StatusInProgress;
-        order.ProgressPercent = Math.Max(order.ProgressPercent, 1);
+        order.ProgressPercent = 0;
         line.CurrentWorkOrderId = order.Id;
 
         await _context.SaveChangesAsync();
@@ -199,13 +204,7 @@ public sealed class ProductionService
 
         if (percent >= 100)
         {
-            order.Status = WorkOrder.StatusCompleted;
-            order.ProgressPercent = 100;
-
-            if (order.ProductionLine is not null && order.ProductionLine.CurrentWorkOrderId == order.Id)
-            {
-                order.ProductionLine.CurrentWorkOrderId = null;
-            }
+            await CompleteWorkOrderAsync(order);
         }
         else if (order.Status == WorkOrder.StatusPending && percent > 0)
         {
@@ -213,6 +212,48 @@ public sealed class ProductionService
         }
 
         await _context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Обновляет прогресс всех заказов «В работе» по времени; при 100% завершает заказ.
+    /// </summary>
+    public async Task SyncInProgressOrdersAsync(CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.Now;
+        var orders = await _context.WorkOrders
+            .Include(o => o.ProductionLine)
+            .Where(o => o.Status == WorkOrder.StatusInProgress)
+            .ToListAsync(cancellationToken);
+
+        foreach (var order in orders)
+        {
+            var percent = ProductionProgressHelper.CalculatePercent(order, now);
+            if (percent >= 100)
+            {
+                await CompleteWorkOrderAsync(order);
+                continue;
+            }
+
+            if (order.ProgressPercent != percent)
+            {
+                order.ProgressPercent = percent;
+            }
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    private Task CompleteWorkOrderAsync(WorkOrder order)
+    {
+        order.Status = WorkOrder.StatusCompleted;
+        order.ProgressPercent = 100;
+
+        if (order.ProductionLine is not null && order.ProductionLine.CurrentWorkOrderId == order.Id)
+        {
+            order.ProductionLine.CurrentWorkOrderId = null;
+        }
+
+        return Task.CompletedTask;
     }
 
     public async Task RescheduleWorkOrderAsync(int orderId, DateTime newStartDate)

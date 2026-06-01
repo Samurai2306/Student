@@ -29,10 +29,23 @@
                 <dt class="col-sm-4">Статус</dt><dd class="col-sm-8">@StatusLabel(Model.Order.Status)</dd>
                 <dt class="col-sm-4">Прогресс</dt>
                 <dd class="col-sm-8">
-                    <div class="progress order-progress mb-1" style="height:10px;max-width:200px">
-                        <div class="progress-bar" style="width:@Model.Order.ProgressPercent%"></div>
-                    </div>
-                    @Model.Order.ProgressPercent%
+                    @if (Model.Order.Status == WorkOrder.StatusInProgress)
+                    {
+                        <div data-order-progress data-order-id="@Model.Order.Id">
+                            <div class="progress order-progress mb-1" style="height:10px;max-width:280px" role="progressbar"
+                                 aria-valuenow="@Model.Order.ProgressPercent" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" data-progress-bar
+                                     style="width:@Model.Order.ProgressPercent%"></div>
+                            </div>
+                            <span><strong data-progress-label>@Model.Order.ProgressPercent</strong>%</span>
+                            <span class="text-muted small ms-2" data-progress-eta>Окончание: @Model.Order.EstimatedEndDate.ToString("dd.MM HH:mm")</span>
+                            <div class="small text-muted">Растёт автоматически до завершения по плану</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <span>@Model.Order.ProgressPercent%</span>
+                    }
                 </dd>
                 <dt class="col-sm-4">Линия</dt><dd class="col-sm-8">@(Model.Order.ProductionLine?.Name ?? "—")</dd>
                 <dt class="col-sm-4">Начало</dt><dd class="col-sm-8">@Model.Order.StartDate.ToString("dd.MM.yyyy HH:mm")</dd>
@@ -88,4 +101,8 @@
             <button class="btn btn-outline-danger btn-sm">Отменить</button>
         </form>
     </div>
+}
+
+@section Scripts {
+    <script src="~/js/order-progress.js" asp-append-version="true"></script>
 }

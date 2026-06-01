@@ -1,0 +1,29 @@
+@{
+    var itemType = ViewData["ItemType"] as string ?? "attraction";
+    var itemId = ViewData["ItemId"]?.ToString() ?? "0";
+    var itemName = ViewData["ItemName"] as string ?? "";
+    var cityName = ViewData["CityName"] as string ?? "";
+    var fee = ViewData["EntryFee"];
+    var imageUrl = ViewData["ImageUrl"] as string ?? "";
+    var url = ViewData["ItemUrl"] as string ?? "#";
+}
+
+<div class="interactive-actions d-flex flex-wrap gap-2 mt-2"
+     data-guide-item
+     data-item-type="@itemType"
+     data-item-id="@itemId"
+     data-item-name="@itemName"
+     data-city-name="@cityName"
+     data-entry-fee="@(fee?.ToString() ?? "")"
+     data-image-url="@imageUrl"
+     data-item-url="@url">
+    <button type="button" class="btn btn-sm btn-outline-danger btn-favorite" title="В избранное">
+        <span class="fav-label">В избранное</span>
+    </button>
+    @if (itemType == "attraction")
+    {
+        <button type="button" class="btn btn-sm btn-outline-success btn-route" title="Добавить в маршрут">
+            + В маршрут
+        </button>
+    }
+</div>

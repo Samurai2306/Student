@@ -31,10 +31,16 @@
                 }
             </li>
         </ul>
-        <a asp-controller="Attractions"
-           asp-action="Details"
-           asp-route-id="@Model.Id"
-           class="btn btn-sm btn-outline-primary mt-auto">
+        <partial name="_InteractiveActions" view-data='new ViewDataDictionary(ViewData) {
+            { "ItemType", "attraction" },
+            { "ItemId", Model.Id },
+            { "ItemName", Model.Name },
+            { "CityName", Model.City?.Name ?? "" },
+            { "EntryFee", Model.EntryFee },
+            { "ImageUrl", Model.ImageUrl },
+            { "ItemUrl", Url.Action("Details", "Attractions", new { id = Model.Id }) }
+        }' />
+        <a asp-controller="Attractions" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary mt-2">
             Подробнее
         </a>
     </div>

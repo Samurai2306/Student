@@ -31,21 +31,19 @@
 
                 @if (current is not null)
                 {
-                    <div class="mb-3">
+                    <div class="mb-3" data-order-progress data-order-id="@current.Id">
                         <div class="small text-muted">Текущий продукт</div>
                         <div class="fw-semibold">@current.Product?.Name</div>
-                        <div class="progress mt-2" style="height: 10px;">
-                            <div class="progress-bar" style="width: @current.ProgressPercent%"></div>
+                        <div class="progress mt-2 order-progress" style="height: 10px;" role="progressbar"
+                             aria-valuenow="@current.ProgressPercent" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" data-progress-bar
+                                 style="width: @current.ProgressPercent%"></div>
                         </div>
-                        <div class="small mt-1">Прогресс: @current.ProgressPercent%</div>
-                        <form asp-action="UpdateProgress" method="post" class="row g-2 mt-2 align-items-end">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="orderId" value="@current.Id" />
-                            <div class="col-8">
-                                <input type="range" name="percent" min="0" max="100" value="@current.ProgressPercent" class="form-range" onchange="this.form.submit()" />
-                            </div>
-                            <div class="col-4 text-end small">@current.ProgressPercent%</div>
-                        </form>
+                        <div class="small mt-1 d-flex justify-content-between flex-wrap gap-1">
+                            <span>Прогресс: <strong data-progress-label>@current.ProgressPercent</strong>%</span>
+                            <span class="text-muted" data-progress-eta>Окончание: @current.EstimatedEndDate.ToString("dd.MM HH:mm")</span>
+                        </div>
+                        <p class="small text-muted mb-0 mt-1">Увеличивается автоматически по плану до 100%</p>
                     </div>
                 }
                 else
@@ -161,3 +159,7 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="~/js/order-progress.js" asp-append-version="true"></script>
+}

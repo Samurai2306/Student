@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using TouristGuide.Data;
 
@@ -18,6 +19,15 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+    app.Lifetime.ApplicationStarted.Register(() =>
+    {
+        var url = app.Urls.FirstOrDefault(u => u.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                  ?? app.Urls.FirstOrDefault();
+        if (!string.IsNullOrEmpty(url))
+        {
+            OpenBrowser(url);
+        }
+    });
 }
 else
 {
@@ -30,8 +40,25 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+static void OpenBrowser(string url)
+{
+    try
+    {
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = url,
+            UseShellExecute = true
+        });
+    }
+    catch
+    {
+        // Браузер не удалось открыть — приложение продолжает работать.
+    }
+}

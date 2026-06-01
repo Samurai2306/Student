@@ -17,13 +17,17 @@
         <h5 class="card-title mb-1">@Model.Name</h5>
         <p class="text-muted small mb-1">@Model.Region</p>
         <p class="text-muted small mb-2">
-            <span class="meta-icon">👥</span> @DisplayFormat.Population(Model.Population)
+            Население: @DisplayFormat.Population(Model.Population)
         </p>
         <p class="card-text flex-grow-1">@Model.ShortDescription</p>
-        <a asp-controller="Cities"
-           asp-action="Details"
-           asp-route-id="@Model.Id"
-           class="btn btn-primary mt-auto">
+        <partial name="_InteractiveActions" view-data='new ViewDataDictionary(ViewData) {
+            { "ItemType", "city" },
+            { "ItemId", Model.Id },
+            { "ItemName", Model.Name },
+            { "CityName", Model.Name },
+            { "ItemUrl", Url.Action("Details", "Cities", new { id = Model.Id }) }
+        }' />
+        <a asp-controller="Cities" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-primary mt-2">
             Подробнее о городе
         </a>
     </div>

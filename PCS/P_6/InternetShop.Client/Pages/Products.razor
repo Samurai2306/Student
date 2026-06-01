@@ -1,0 +1,142 @@
+@page "/"
+@inject ProductApiService Api
+@inject NavigationManager Nav
+
+<PageTitle>Товары</PageTitle>
+
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Каталог товаров</h1>
+        <p class="text-muted mb-0">Управление ассортиментом интернет-магазина</p>
+    </div>
+    <a class="btn btn-primary" href="products/add">+ Добавить товар</a>
+</div>
+
+@if (_loading)
+{
+    <div class="panel-card text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3 text-muted mb-0">Загрузка...</p>
+    </div>
+}
+else if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_products.Count == 0)
+{
+    <div class="panel-card empty-state text-center py-5">
+        <h2 class="h5">Товаров пока нет</h2>
+        <p class="text-muted">Добавьте первый товар в каталог.</p>
+        <a class="btn btn-primary" href="products/add">Добавить товар</a>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        @foreach (var product in _products)
+        {
+            <div class="col">
+                <article class="product-card panel-card h-100">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <h2 class="h5 mb-0">@product.Name</h2>
+                        <span class="badge category-badge">@product.Category</span>
+                    </div>
+                    <p class="product-desc text-muted">@product.Description</p>
+                    <div class="product-meta mb-3">
+                        <div><span class="meta-label">Цена</span> <strong>@product.Price.ToString("N0") ₽</strong></div>
+                        <div><span class="meta-label">На складе</span> @product.Stock шт.</div>
+                    </div>
+                    <div class="d-flex gap-2 mt-auto">
+                        <a class="btn btn-sm btn-outline-primary flex-grow-1" href="products/edit/@product.Id">Изменить</a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => AskDelete(product)">Удалить</button>
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+}
+
+@if (_toDelete is not null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Удалить товар?</h5>
+                    <button type="button" class="btn-close" @onclick="CancelDelete" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-1">Вы уверены, что хотите удалить:</p>
+                    <p class="fw-semibold mb-0">«@_toDelete.Name»</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelDelete">Отмена</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDelete" disabled="@_deleting">
+                        @(_deleting ? "Удаление..." : "Удалить")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Product> _products = [];
+    private bool _loading = true;
+    private string? _error;
+    private Product? _toDelete;
+    private bool _deleting;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _products = (await Api.GetAllAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Не удалось загрузить товары: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void AskDelete(Product product) => _toDelete = product;
+
+    private void CancelDelete() => _toDelete = null;
+
+    private async Task ConfirmDelete()
+    {
+        if (_toDelete is null) return;
+
+        _deleting = true;
+        try
+        {
+            if (await Api.DeleteAsync(_toDelete.Id))
+            {
+                _products.RemoveAll(p => p.Id == _toDelete.Id);
+                _toDelete = null;
+            }
+            else
+            {
+                _error = "Не удалось удалить товар.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _deleting = false;
+        }
+    }
+}

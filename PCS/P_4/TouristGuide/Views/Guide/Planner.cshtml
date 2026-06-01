@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "Планировщик маршрута";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
+        <li class="breadcrumb-item active">Маршрут</li>
+    </ol>
+</nav>
+
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Планировщик поездки</h1>
+        <p class="text-muted mb-0">Соберите маршрут из достопримечательностей — данные сохраняются в браузере</p>
+    </div>
+    <a asp-controller="Guide" asp-action="Map" class="btn btn-outline-primary">Открыть карту</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="content-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title mb-0">Ваш маршрут</h2>
+                <span class="badge text-bg-primary" id="routeCountBadge">0 мест</span>
+            </div>
+            <div id="routeList" class="route-list">
+                <p class="text-muted mb-0" id="routeEmpty">Маршрут пуст. Добавляйте места с карточек достопримечательностей кнопкой «+ В маршрут».</p>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <button type="button" class="btn btn-outline-danger btn-sm" id="btnClearRoute">Очистить маршрут</button>
+                <a asp-controller="Attractions" asp-action="Index" class="btn btn-outline-primary btn-sm">Выбрать места</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="content-section mb-4">
+            <h2 class="section-title">Бюджет входных билетов</h2>
+            <div class="budget-display">
+                <span class="budget-value" id="routeBudget">0 ₽</span>
+            </div>
+            <p class="small text-muted mb-0">Сумма платных входов по выбранным местам (бесплатные — 0 ₽)</p>
+        </div>
+        <div class="content-section">
+            <h2 class="section-title">Избранное</h2>
+            <div id="favoritesList" class="favorites-list">
+                <p class="text-muted small mb-0" id="favoritesEmpty">Нажмите «В избранное» на карточке города или места.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/guide.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.TouristGuide?.refreshPlannerUi?.();
+        });
+    </script>
+}

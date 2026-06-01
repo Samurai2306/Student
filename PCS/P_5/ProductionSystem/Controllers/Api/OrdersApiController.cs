@@ -58,6 +58,26 @@ public class OrdersApiController : ControllerBase
         return Ok(items);
     }
 
+    [HttpGet("progress")]
+    public async Task<ActionResult> GetProgress()
+    {
+        await _production.SyncInProgressOrdersAsync();
+
+        var items = await _context.WorkOrders
+            .Where(o => o.Status == WorkOrder.StatusInProgress)
+            .Select(o => new
+            {
+                o.Id,
+                percent = o.ProgressPercent,
+                o.Status,
+                o.EstimatedEndDate,
+                o.StartDate
+            })
+            .ToListAsync();
+
+        return Ok(items);
+    }
+
     [HttpPost]
     public async Task<ActionResult> CreateOrder([FromBody] CreateOrderRequest request)
     {

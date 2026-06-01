@@ -1,18 +1,29 @@
 @model TouristGuide.Models.City
+@using System.Text.Json
 @using TouristGuide.Helpers
 @{
     ViewData["Title"] = Model.Name;
+    var routePayload = Model.Attractions.Select(a => new
+    {
+        type = "attraction",
+        id = a.Id,
+        name = a.Name,
+        cityName = Model.Name,
+        entryFee = a.EntryFee,
+        imageUrl = a.ImageUrl,
+        url = Url.Action("Details", "Attractions", new { id = a.Id })!
+    });
 }
 
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
         <li class="breadcrumb-item"><a asp-controller="Cities" asp-action="Index">Города</a></li>
-        <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+        <li class="breadcrumb-item active">@Model.Name</li>
     </ol>
 </nav>
 
-<div class="city-header row g-4 mb-5">
+<div class="city-header row g-4 mb-4">
     <div class="col-lg-7">
         <partial name="_ResponsiveImage"
                  view-data='new ViewDataDictionary(ViewData) {
@@ -25,7 +36,6 @@
         <div class="city-summary-card h-100">
             <h1 class="display-6 fw-bold mb-2">@Model.Name</h1>
             <p class="text-muted mb-3">@Model.Region</p>
-
             <div class="info-grid mb-3">
                 <div class="info-item">
                     <span class="info-label">Население</span>
@@ -36,7 +46,6 @@
                     <span class="info-value">@Model.Attractions.Count</span>
                 </div>
             </div>
-
             @if (!string.IsNullOrWhiteSpace(Model.CoatOfArmsUrl))
             {
                 <div class="coat-wrap mb-3">
@@ -52,50 +61,81 @@
                     </div>
                 </div>
             }
-
-            <p class="mb-0">@Model.ShortDescription</p>
+            <p class="mb-3">@Model.ShortDescription</p>
+            <partial name="_InteractiveActions" view-data='new ViewDataDictionary(ViewData) {
+                { "ItemType", "city" },
+                { "ItemId", Model.Id },
+                { "ItemName", Model.Name },
+                { "CityName", Model.Name },
+                { "ItemUrl", Url.Action("Details", "Cities", new { id = Model.Id }) }
+            }' />
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                <a asp-controller="Guide" asp-action="Map" asp-route-cityId="@Model.Id" class="btn btn-sm btn-primary">На карте</a>
+                @if (Model.Attractions.Any())
+                {
+                    <button type="button" class="btn btn-sm btn-outline-success" id="btnAddAllRoute">Все места в маршрут</button>
+                }
+            </div>
         </div>
     </div>
 </div>
 
-<section class="content-section mb-5">
-    <h2 class="section-title">История</h2>
-    <p class="city-history">@Model.History</p>
-</section>
+<ul class="nav nav-tabs city-tabs mb-3" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-map" type="button">Карта</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-history" type="button">История</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-places" type="button">Места (@Model.Attractions.Count)</button></li>
+</ul>
 
-<section class="content-section">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <h2 class="section-title mb-0">Достопримечательности</h2>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge rounded-pill text-bg-light border">
-                @Model.Attractions.Count @DisplayFormat.Pluralize(Model.Attractions.Count, "объект", "объекта", "объектов")
-            </span>
-            @if (Model.Attractions.Any())
-            {
-                <a asp-controller="Attractions" asp-action="Index" asp-route-cityId="@Model.Id" class="btn btn-sm btn-outline-primary">
-                    В каталоге
-                </a>
-            }
+<div class="tab-content mb-4">
+    <div class="tab-pane fade show active" id="tab-map">
+        <div class="content-section">
+            <p class="text-muted small mb-2">Метки достопримечательностей @Model.Name</p>
+            <div id="cityMiniMap" class="travel-map travel-map-sm" data-city-id="@Model.Id"></div>
         </div>
     </div>
-
-    @if (!Model.Attractions.Any())
-    {
-        <div class="empty-state py-4">
-            <p class="text-muted mb-0">Достопримечательности для этого города пока не добавлены.</p>
+    <div class="tab-pane fade" id="tab-history">
+        <div class="content-section">
+            <h2 class="section-title">История</h2>
+            <p class="city-history">@Model.History</p>
         </div>
-    }
-    else
-    {
-        <div class="row row-cols-1 row-cols-md-2 g-4">
-            @foreach (var attraction in Model.Attractions)
+    </div>
+    <div class="tab-pane fade" id="tab-places">
+        <div class="content-section">
+            @if (!Model.Attractions.Any())
             {
-                <div class="col">
-                    <partial name="_AttractionCard" model="attraction" />
+                <p class="text-muted mb-0">Достопримечательности пока не добавлены.</p>
+            }
+            else
+            {
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    @foreach (var attraction in Model.Attractions)
+                    {
+                        <div class="col"><partial name="_AttractionCard" model="attraction" /></div>
+                    }
                 </div>
             }
         </div>
-    }
-</section>
+    </div>
+</div>
 
-<a asp-action="Index" class="btn btn-link mt-4 px-0">&larr; К списку городов</a>
+<a asp-action="Index" class="btn btn-link px-0">&larr; К списку городов</a>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.TouristGuide?.initMap?.('cityMiniMap');
+            const items = @Html.Raw(JsonSerializer.Serialize(routePayload));
+            document.getElementById('btnAddAllRoute')?.addEventListener('click', () => {
+                let route = window.TouristGuide.getRoute();
+                items.forEach(a => {
+                    const key = `attraction:${a.id}`;
+                    if (!route.some(r => `${r.type}:${r.id}` === key)) route.push(a);
+                });
+                window.TouristGuide.setRoute(route);
+                window.TouristGuide.refreshPlannerUi();
+            });
+        });
+    </script>
+}

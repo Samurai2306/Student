@@ -1,0 +1,60 @@
+@model TouristGuide.ViewModels.MapViewModel
+@{
+    ViewData["Title"] = "Интерактивная карта";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
+        <li class="breadcrumb-item active">Карта</li>
+    </ol>
+</nav>
+
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Интерактивная карта</h1>
+        <p class="text-muted mb-0">Города и достопримечательности России — кликните на метку для подробностей</p>
+    </div>
+    <a asp-controller="Guide" asp-action="Planner" class="btn btn-primary">Мой маршрут</a>
+</div>
+
+<div class="content-section mb-3">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Показать на карте</label>
+            <select name="cityId" class="form-select" id="mapCityFilter">
+                <option value="">Вся Россия (все города)</option>
+                @foreach (var city in Model.Cities)
+                {
+                    <option value="@city.Id" selected="@(Model.CityId == city.Id)">@city.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-primary w-100">Применить</button>
+        </div>
+        <div class="col-md-3">
+            <a asp-action="Map" class="btn btn-outline-secondary w-100">Сбросить</a>
+        </div>
+    </form>
+</div>
+
+<div class="map-legend content-section mb-3 py-2 px-3 d-flex flex-wrap gap-3 small">
+    <span><span class="legend-dot legend-city"></span> Город</span>
+    <span><span class="legend-dot legend-attraction"></span> Достопримечательность</span>
+</div>
+
+<div id="travelMap" class="travel-map shadow-sm" data-city-id="@(Model.CityId?.ToString() ?? "")"></div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/guide.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.TouristGuide?.initMap) {
+                window.TouristGuide.initMap('travelMap');
+            }
+        });
+    </script>
+}

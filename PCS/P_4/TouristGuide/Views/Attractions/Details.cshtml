@@ -1,87 +1,178 @@
-@model TouristGuide.ViewModels.AttractionDetailsViewModel
-@using TouristGuide.Helpers
-@{
-    ViewData["Title"] = Model.Attraction.Name;
-    var attraction = Model.Attraction;
-}
-
-<nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
-        <li class="breadcrumb-item"><a asp-controller="Cities" asp-action="Index">Города</a></li>
-        <li class="breadcrumb-item">
-            <a asp-controller="Cities" asp-action="Details" asp-route-id="@attraction.CityId">@attraction.City.Name</a>
-        </li>
-        <li class="breadcrumb-item active" aria-current="page">@attraction.Name</li>
-    </ol>
-</nav>
-
-<div class="row g-4">
-    <div class="col-lg-7">
-        <partial name="_ResponsiveImage"
-                 view-data='new ViewDataDictionary(ViewData) {
-                     { "Src", attraction.ImageUrl },
-                     { "Alt", attraction.Name },
-                     { "CssClass", "img-fluid rounded-4 shadow city-hero-img" }
-                 }' />
-    </div>
-    <div class="col-lg-5">
-        <div class="city-summary-card h-100">
-            <h1 class="display-6 fw-bold">@attraction.Name</h1>
-            <p class="text-muted mb-3">
-                <a asp-controller="Cities" asp-action="Details" asp-route-id="@attraction.CityId">@attraction.City.Name</a>
-                · @attraction.City.Region
-            </p>
-
-            <p class="mb-4">@attraction.ShortDescription</p>
-
-            <dl class="row attraction-meta mb-0">
-                <dt class="col-sm-4">Часы работы</dt>
-                <dd class="col-sm-8">@attraction.OpeningHours</dd>
-
-                <dt class="col-sm-4">Стоимость</dt>
-                <dd class="col-sm-8">
-                    @if (attraction.EntryFee.HasValue)
-                    {
-                        <span class="fee-paid">@DisplayFormat.EntryFee(attraction.EntryFee)</span>
-                    }
-                    else
-                    {
-                        <span class="fee-free">@DisplayFormat.EntryFee(null)</span>
-                    }
-                </dd>
-            </dl>
-        </div>
-    </div>
-</div>
-
-<section class="content-section mt-4">
-    <h2 class="section-title">История и описание</h2>
-    <p class="city-history">@attraction.History</p>
-</section>
-
-@if (Model.RelatedAttractions.Any())
-{
-    <section class="content-section mt-4">
-        <h2 class="section-title">Ещё в @attraction.City.Name</h2>
-        <div class="row row-cols-1 row-cols-md-2 g-4">
-            @foreach (var related in Model.RelatedAttractions)
-            {
-                <div class="col">
-                    <partial name="_AttractionCard" model="related" />
-                </div>
-            }
-        </div>
-    </section>
-}
-
-<div class="mt-4 d-flex gap-2 flex-wrap">
-    <a asp-controller="Cities" asp-action="Details" asp-route-id="@attraction.CityId" class="btn btn-primary">
-        &larr; К городу @attraction.City.Name
-    </a>
-    <a asp-controller="Attractions" asp-action="Index" asp-route-cityId="@attraction.CityId" class="btn btn-outline-primary">
-        Все места в городе
-    </a>
-    <a asp-controller="Cities" asp-action="Index" class="btn btn-outline-secondary">Все города</a>
-</div>
-
+@model TouristGuide.ViewModels.AttractionDetailsViewModel
+
+@using TouristGuide.Helpers
+
+@{
+
+    ViewData["Title"] = Model.Attraction.Name;
+
+    var attraction = Model.Attraction;
+
+}
+
+
+
+<nav aria-label="breadcrumb" class="mb-3">
+
+    <ol class="breadcrumb">
+
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
+
+        <li class="breadcrumb-item"><a asp-controller="Cities" asp-action="Index">Города</a></li>
+
+        <li class="breadcrumb-item">
+
+            <a asp-controller="Cities" asp-action="Details" asp-route-id="@attraction.CityId">@attraction.City.Name</a>
+
+        </li>
+
+        <li class="breadcrumb-item active" aria-current="page">@attraction.Name</li>
+
+    </ol>
+
+</nav>
+
+
+
+<div class="row g-4">
+
+    <div class="col-lg-7">
+
+        <partial name="_ResponsiveImage"
+
+                 view-data='new ViewDataDictionary(ViewData) {
+
+                     { "Src", attraction.ImageUrl },
+
+                     { "Alt", attraction.Name },
+
+                     { "CssClass", "img-fluid rounded-4 shadow city-hero-img" }
+
+                 }' />
+
+    </div>
+
+    <div class="col-lg-5">
+
+        <div class="city-summary-card h-100">
+
+            <h1 class="display-6 fw-bold">@attraction.Name</h1>
+
+            <p class="text-muted mb-3">
+
+                <a asp-controller="Cities" asp-action="Details" asp-route-id="@attraction.CityId">@attraction.City.Name</a>
+
+                · @attraction.City.Region
+
+            </p>
+
+
+
+            <p class="mb-4">@attraction.ShortDescription</p>
+
+
+
+            <dl class="row attraction-meta mb-0">
+
+                <dt class="col-sm-4">Часы работы</dt>
+
+                <dd class="col-sm-8">@attraction.OpeningHours</dd>
+
+
+
+                <dt class="col-sm-4">Стоимость</dt>
+
+                <dd class="col-sm-8">
+
+                    @if (attraction.EntryFee.HasValue)
+
+                    {
+
+                        <span class="fee-paid">@DisplayFormat.EntryFee(attraction.EntryFee)</span>
+
+                    }
+
+                    else
+
+                    {
+
+                        <span class="fee-free">@DisplayFormat.EntryFee(null)</span>
+
+                    }
+
+                </dd>
+
+            </dl>
+            <partial name="_InteractiveActions" view-data='new ViewDataDictionary(ViewData) {
+                { "ItemType", "attraction" },
+                { "ItemId", attraction.Id },
+                { "ItemName", attraction.Name },
+                { "CityName", attraction.City.Name },
+                { "EntryFee", attraction.EntryFee },
+                { "ImageUrl", attraction.ImageUrl },
+                { "ItemUrl", Url.Action("Details", "Attractions", new { id = attraction.Id }) }
+            }' />
+            <a asp-controller="Guide" asp-action="Map" asp-route-cityId="@attraction.CityId" class="btn btn-sm btn-primary mt-2">Показать на карте</a>
+        </div>
+    </div>
+</div>
+
+<section class="content-section mt-4">
+
+    <h2 class="section-title">История и описание</h2>
+
+    <p class="city-history">@attraction.History</p>
+
+</section>
+
+
+
+@if (Model.RelatedAttractions.Any())
+
+{
+
+    <section class="content-section mt-4">
+
+        <h2 class="section-title">Ещё в @attraction.City.Name</h2>
+
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+
+            @foreach (var related in Model.RelatedAttractions)
+
+            {
+
+                <div class="col">
+
+                    <partial name="_AttractionCard" model="related" />
+
+                </div>
+
+            }
+
+        </div>
+
+    </section>
+
+}
+
+
+
+<div class="mt-4 d-flex gap-2 flex-wrap">
+
+    <a asp-controller="Cities" asp-action="Details" asp-route-id="@attraction.CityId" class="btn btn-primary">
+
+        &larr; К городу @attraction.City.Name
+
+    </a>
+
+    <a asp-controller="Attractions" asp-action="Index" asp-route-cityId="@attraction.CityId" class="btn btn-outline-primary">
+
+        Все места в городе
+
+    </a>
+
+    <a asp-controller="Cities" asp-action="Index" class="btn btn-outline-secondary">Все города</a>
+
+</div>
+
+

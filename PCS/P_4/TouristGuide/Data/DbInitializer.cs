@@ -4,9 +4,18 @@ namespace TouristGuide.Data;
 
 public static class DbInitializer
 {
+    private static readonly Dictionary<string, string> CityImageByName = new()
+    {
+        ["Москва"] = "/images/cities/moscow.jpg",
+        ["Санкт-Петербург"] = "/images/cities/saint-petersburg.jpg",
+        ["Казань"] = "/images/cities/kazan.jpg",
+        ["Сочи"] = "/images/cities/sochi.jpg",
+        ["Новосибирск"] = "/images/cities/novosibirsk.jpg"
+    };
+
     public static void Initialize(TouristGuideContext context)
     {
-        context.Database.EnsureCreated();
+        SchemaUpgrader.Upgrade(context);
 
         if (!context.Cities.Any())
         {
@@ -16,6 +25,28 @@ public static class DbInitializer
         else if (!context.Cities.Any(c => c.Name == "Сочи"))
         {
             context.Cities.AddRange(GetAdditionalCities());
+            context.SaveChanges();
+        }
+
+        SyncCityImageUrls(context);
+        GeoData.ApplyToDatabase(context);
+    }
+
+    private static void SyncCityImageUrls(TouristGuideContext context)
+    {
+        var updated = false;
+
+        foreach (var city in context.Cities)
+        {
+            if (CityImageByName.TryGetValue(city.Name, out var localUrl) && city.ImageUrl != localUrl)
+            {
+                city.ImageUrl = localUrl;
+                updated = true;
+            }
+        }
+
+        if (updated)
+        {
             context.SaveChanges();
         }
     }
@@ -53,7 +84,7 @@ public static class DbInitializer
                   "столицей Российского государства и сохранил статус столицы Российской Федерации. " +
                   "Здесь сосредоточены Кремль, исторические кварталы и современные деловые районы.",
         CoatOfArmsUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Coat_of_arms_of_Moscow.svg/120px-Coat_of_arms_of_Moscow.svg.png",
-        ImageUrl = "https://images.unsplash.com/photo-1513326738677-b964603b136d?w=800&q=80",
+        ImageUrl = CityImageByName["Москва"],
         Attractions =
         [
             new Attraction
@@ -98,7 +129,7 @@ public static class DbInitializer
         History = "Город основан Петром I в 1703 году как «окно в Европу». Архитектура XVIII–XIX веков, " +
                   "разводные мосты и музеи делают Петербург одним из главных туристических направлений.",
         CoatOfArmsUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Coat_of_Arms_of_Saint_Petersburg.svg/120px-Coat_of_Arms_of_Saint_Petersburg.svg.png",
-        ImageUrl = "https://images.unsplash.com/photo-1556617231-3669a2d28989?w=800&q=80",
+        ImageUrl = CityImageByName["Санкт-Петербург"],
         Attractions =
         [
             new Attraction
@@ -133,7 +164,7 @@ public static class DbInitializer
         History = "Казань — один из древнейших городов России. Казанский Кремль, мечети и православные храмы " +
                   "отражают многовековую историю региона.",
         CoatOfArmsUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Coat_of_Arms_of_Kazan.svg/120px-Coat_of_Arms_of_Kazan.svg.png",
-        ImageUrl = "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80",
+        ImageUrl = CityImageByName["Казань"],
         Attractions =
         [
             new Attraction
@@ -170,7 +201,7 @@ public static class DbInitializer
             History = "Сочи известен с XIX века как климатический и морской курорт. Город принимал Зимнюю " +
                       "Олимпиаду 2014 года, здесь сосредоточены пляжи, горные курорты Красной Поляны и парки.",
             CoatOfArmsUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Coat_of_Arms_of_Sochi.svg/120px-Coat_of_Arms_of_Sochi.svg.png",
-            ImageUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+            ImageUrl = CityImageByName["Сочи"],
             Attractions =
             [
                 new Attraction
@@ -204,7 +235,7 @@ public static class DbInitializer
             History = "Основан в 1893 году как поселок у моста через Обь. Новосибирск вырос вокруг Транссибирской " +
                       "магистрали и Академгородка, сохранив динамичный деловой и культурный облик.",
             CoatOfArmsUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Coat_of_Arms_of_Novosibirsk.svg/120px-Coat_of_Arms_of_Novosibirsk.svg.png",
-            ImageUrl = "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&q=80",
+            ImageUrl = CityImageByName["Новосибирск"],
             Attractions =
             [
                 new Attraction
