@@ -1,0 +1,268 @@
+html {
+  position: relative;
+  min-height: 100%;
+  font-size: 15px;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin-bottom: 88px;
+  background: linear-gradient(180deg, #eef4ff 0%, #f8f9fb 220px, #f8f9fb 100%);
+  color: #1f2937;
+}
+
+.hero-panel {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #3b82f6 100%);
+  color: #fff;
+  border-radius: 1.25rem;
+  padding: 2rem 2.25rem;
+  box-shadow: 0 1rem 2rem rgba(37, 99, 235, 0.18);
+}
+
+.hero-kicker {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+.hero-panel .lead {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.kpi-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.85rem;
+  padding: 1rem 1.1rem;
+  text-align: center;
+  box-shadow: 0 0.25rem 0.75rem rgba(15, 23, 42, 0.04);
+  height: 100%;
+}
+
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1d4ed8;
+}
+
+.kpi-label {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.kpi-accent .kpi-value {
+  color: #2563eb;
+}
+
+.kpi-ok .kpi-value {
+  color: #15803d;
+}
+
+.filter-tabs .btn {
+  border-radius: 999px;
+}
+
+.page-header {
+  max-width: 900px;
+}
+
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.stat-chip {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(15, 23, 42, 0.04);
+}
+
+.stat-chip-accent {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.stat-value {
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.stat-label {
+  color: #4b5563;
+  font-size: 0.92rem;
+}
+
+.search-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.05);
+}
+
+.city-card,
+.attraction-card {
+  border: none;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.city-card:hover,
+.attraction-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.12) !important;
+}
+
+.city-card-media {
+  position: relative;
+}
+
+.city-card-badge {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+}
+
+.city-card-img {
+  height: 210px;
+  object-fit: cover;
+}
+
+.attraction-card-img {
+  height: 190px;
+  object-fit: cover;
+}
+
+.city-hero-img {
+  width: 100%;
+  max-height: 440px;
+  object-fit: cover;
+}
+
+.city-summary-card,
+.content-section,
+.empty-state {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.05);
+}
+
+.section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.info-item {
+  background: #f8fafc;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+}
+
+.info-label {
+  display: block;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.info-value {
+  font-weight: 700;
+}
+
+.coat-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+  border-radius: 0.85rem;
+}
+
+.coat-of-arms {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.city-history {
+  line-height: 1.75;
+  margin-bottom: 0;
+  white-space: pre-line;
+}
+
+.attraction-card-meta li + li {
+  margin-top: 0.35rem;
+}
+
+.attraction-meta dt {
+  font-weight: 600;
+  color: #374151;
+}
+
+.fee-free {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.fee-paid {
+  font-weight: 700;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+}
+
+.navbar.bg-primary {
+  background: linear-gradient(90deg, #1e40af, #2563eb) !important;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.btn:focus,
+.form-control:focus {
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
+}
+
+@media (max-width: 767.98px) {
+  .hero-panel {
+    padding: 1.5rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}

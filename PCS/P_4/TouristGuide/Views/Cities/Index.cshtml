@@ -1,0 +1,114 @@
+@model TouristGuide.ViewModels.CitiesIndexViewModel
+@using TouristGuide.Helpers
+@{
+    ViewData["Title"] = "Города";
+    var foundWord = DisplayFormat.Pluralize(Model.Cities.Count, "найден", "найдено", "найдено");
+    var cityWord = DisplayFormat.Pluralize(Model.Cities.Count, "город", "города", "городов");
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
+        <li class="breadcrumb-item active">Города</li>
+    </ol>
+</nav>
+
+<section class="hero-panel mb-4">
+    <div class="hero-panel-content">
+        <p class="hero-kicker mb-2">Каталог городов</p>
+        <h1 class="display-6 fw-bold mb-2">Города России</h1>
+        <p class="lead mb-0">
+            История, гербы, фото и достопримечательности — выберите направление для путешествия.
+        </p>
+    </div>
+</section>
+
+<div class="stats-row mb-4">
+    <div class="stat-chip">
+        <span class="stat-value">@Model.TotalInDatabase</span>
+        <span class="stat-label">@DisplayFormat.Pluralize(Model.TotalInDatabase, "город", "города", "городов") в базе</span>
+    </div>
+    @if (Model.HasFilters)
+    {
+        <div class="stat-chip stat-chip-accent">
+            <span class="stat-value">@Model.Cities.Count</span>
+            <span class="stat-label">@foundWord @cityWord</span>
+        </div>
+    }
+</div>
+
+<form asp-action="Index" method="get" class="search-panel row g-2 mb-3 align-items-end">
+    <div class="col-lg-5">
+        <label for="search" class="form-label fw-semibold">Поиск</label>
+        <input id="search" type="search" name="search" value="@Model.Search" class="form-control form-control-lg"
+               placeholder="Название, регион, описание..." />
+    </div>
+    <div class="col-lg-3">
+        <label class="form-label fw-semibold">Сортировка</label>
+        <select name="sort" class="form-select form-select-lg">
+            <option value="name" selected="@(Model.Sort == "name")">По названию</option>
+            <option value="population-desc" selected="@(Model.Sort == "population-desc")">Население ↓</option>
+            <option value="population-asc" selected="@(Model.Sort == "population-asc")">Население ↑</option>
+        </select>
+    </div>
+    <div class="col-lg-4 d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary btn-lg flex-grow-1">Найти</button>
+        @if (Model.HasFilters)
+        {
+            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Сбросить</a>
+        }
+    </div>
+    @if (Model.HasRegion)
+    {
+        <input type="hidden" name="region" value="@Model.Region" />
+    }
+</form>
+
+@if (Model.Regions.Any())
+{
+    <div class="filter-tabs d-flex flex-wrap gap-2 mb-4">
+        <a asp-action="Index" asp-route-search="@Model.Search" asp-route-sort="@Model.Sort"
+           class="btn btn-sm @(Model.HasRegion ? "btn-outline-secondary" : "btn-primary")">Все регионы</a>
+        @foreach (var region in Model.Regions)
+        {
+            var shortName = region.Split(' ').FirstOrDefault() ?? region;
+            <a asp-action="Index" asp-route-search="@Model.Search" asp-route-sort="@Model.Sort" asp-route-region="@region"
+               class="btn btn-sm @(Model.Region == region ? "btn-primary" : "btn-outline-secondary")"
+               title="@region">@shortName</a>
+        }
+    </div>
+}
+
+@if (!Model.Cities.Any())
+{
+    <div class="empty-state">
+        <h2 class="h4">Города не найдены</h2>
+        <p class="text-muted mb-3">
+            @if (Model.HasSearch)
+            {
+                @:По запросу «@Model.Search» ничего не найдено.
+            }
+            else if (Model.HasRegion)
+            {
+                @:В выбранном регионе городов нет.
+            }
+            else
+            {
+                @:Попробуйте изменить параметры поиска.
+            }
+        </p>
+        <a asp-action="Index" class="btn btn-primary">Показать все города</a>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        @foreach (var city in Model.Cities)
+        {
+            <div class="col">
+                <partial name="_CityCard" model="city" />
+            </div>
+        }
+    </div>
+}
+

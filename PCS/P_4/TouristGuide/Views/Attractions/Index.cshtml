@@ -1,0 +1,100 @@
+@model TouristGuide.ViewModels.AttractionsIndexViewModel
+@using TouristGuide.Helpers
+@{
+    ViewData["Title"] = "Достопримечательности";
+    var foundWord = DisplayFormat.Pluralize(Model.Attractions.Count, "найдена", "найдено", "найдено");
+    var placeWord = DisplayFormat.Pluralize(Model.Attractions.Count, "достопримечательность", "достопримечательности", "достопримечательностей");
+    bool IsFee(string value) => string.Equals(Model.FeeFilter, value, StringComparison.OrdinalIgnoreCase);
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
+        <li class="breadcrumb-item active">Достопримечательности</li>
+    </ol>
+</nav>
+
+<div class="page-header mb-4">
+    <h1 class="h3 fw-bold">Каталог достопримечательностей</h1>
+    <p class="text-muted mb-0">@Model.TotalInDatabase @DisplayFormat.Pluralize(Model.TotalInDatabase, "объект", "объекта", "объектов") в базе — фильтры по городу, стоимости и поиску.</p>
+</div>
+
+<div class="stats-row mb-4">
+    <div class="stat-chip">
+        <span class="stat-value">@Model.TotalInDatabase</span>
+        <span class="stat-label">всего в базе</span>
+    </div>
+    @if (Model.HasFilters)
+    {
+        <div class="stat-chip stat-chip-accent">
+            <span class="stat-value">@Model.Attractions.Count</span>
+            <span class="stat-label">@foundWord @placeWord</span>
+        </div>
+    }
+</div>
+
+<form asp-action="Index" method="get" class="search-panel mb-3">
+    <div class="row g-3 align-items-end">
+        <div class="col-lg-4">
+            <label class="form-label fw-semibold">Поиск</label>
+            <input type="search" name="search" value="@Model.Search" class="form-control" placeholder="Название, описание, город..." />
+        </div>
+        <div class="col-lg-3">
+            <label class="form-label fw-semibold">Город</label>
+            <select name="cityId" class="form-select">
+                <option value="">Все города</option>
+                @foreach (var city in Model.Cities)
+                {
+                    <option value="@city.Id" selected="@(Model.CityId == city.Id)">@city.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-lg-3">
+            <label class="form-label fw-semibold">Сортировка</label>
+            <select name="sort" class="form-select">
+                <option value="name" selected="@(Model.Sort == "name")">По названию</option>
+                <option value="city" selected="@(Model.Sort == "city")">По городу</option>
+                <option value="price-asc" selected="@(Model.Sort == "price-asc")">Сначала дешевле</option>
+                <option value="price-desc" selected="@(Model.Sort == "price-desc")">Сначала дороже</option>
+            </select>
+        </div>
+        <div class="col-lg-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1">Найти</button>
+            @if (Model.HasFilters)
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">Сброс</a>
+            }
+        </div>
+    </div>
+    <input type="hidden" name="fee" value="@Model.FeeFilter" />
+</form>
+
+<div class="filter-tabs d-flex flex-wrap gap-2 mb-4">
+    <a asp-action="Index" asp-route-search="@Model.Search" asp-route-cityId="@Model.CityId" asp-route-sort="@Model.Sort" asp-route-fee="all"
+       class="btn btn-sm @(IsFee("all") ? "btn-primary" : "btn-outline-secondary")">Все</a>
+    <a asp-action="Index" asp-route-search="@Model.Search" asp-route-cityId="@Model.CityId" asp-route-sort="@Model.Sort" asp-route-fee="free"
+       class="btn btn-sm @(IsFee("free") ? "btn-primary" : "btn-outline-secondary")">Бесплатно</a>
+    <a asp-action="Index" asp-route-search="@Model.Search" asp-route-cityId="@Model.CityId" asp-route-sort="@Model.Sort" asp-route-fee="paid"
+       class="btn btn-sm @(IsFee("paid") ? "btn-primary" : "btn-outline-secondary")">Платно</a>
+</div>
+
+@if (!Model.Attractions.Any())
+{
+    <div class="empty-state">
+        <h2 class="h4">Ничего не найдено</h2>
+        <p class="text-muted mb-3">Попробуйте изменить фильтры или сбросить поиск.</p>
+        <a asp-action="Index" class="btn btn-primary">Показать все</a>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        @foreach (var attraction in Model.Attractions)
+        {
+            <div class="col">
+                <partial name="_AttractionCard" model="attraction" />
+            </div>
+        }
+    </div>
+}
+

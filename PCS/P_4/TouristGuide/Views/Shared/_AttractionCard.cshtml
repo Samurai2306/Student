@@ -1,0 +1,41 @@
+@model TouristGuide.Models.Attraction
+@using TouristGuide.Helpers
+
+<div class="card attraction-card h-100 shadow-sm">
+    <partial name="_ResponsiveImage"
+             view-data='new ViewDataDictionary(ViewData) {
+                 { "Src", Model.ImageUrl },
+                 { "Alt", Model.Name },
+                 { "CssClass", "card-img-top attraction-card-img" }
+             }' />
+    <div class="card-body d-flex flex-column">
+        <h5 class="card-title">@Model.Name</h5>
+        @if (Model.City is not null)
+        {
+            <p class="text-muted small mb-2">
+                <a asp-controller="Cities" asp-action="Details" asp-route-id="@Model.CityId" class="text-decoration-none">@Model.City.Name</a>
+            </p>
+        }
+        <p class="card-text flex-grow-1">@Model.ShortDescription</p>
+        <ul class="list-unstyled small text-muted attraction-card-meta mb-3">
+            <li><strong>Часы работы:</strong> @Model.OpeningHours</li>
+            <li>
+                <strong>Вход:</strong>
+                @if (Model.EntryFee.HasValue)
+                {
+                    @DisplayFormat.EntryFee(Model.EntryFee)
+                }
+                else
+                {
+                    <span class="text-success fw-semibold">@DisplayFormat.EntryFee(null)</span>
+                }
+            </li>
+        </ul>
+        <a asp-controller="Attractions"
+           asp-action="Details"
+           asp-route-id="@Model.Id"
+           class="btn btn-sm btn-outline-primary mt-auto">
+            Подробнее
+        </a>
+    </div>
+</div>

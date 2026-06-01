@@ -1,0 +1,101 @@
+@model TouristGuide.Models.City
+@using TouristGuide.Helpers
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Главная</a></li>
+        <li class="breadcrumb-item"><a asp-controller="Cities" asp-action="Index">Города</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+    </ol>
+</nav>
+
+<div class="city-header row g-4 mb-5">
+    <div class="col-lg-7">
+        <partial name="_ResponsiveImage"
+                 view-data='new ViewDataDictionary(ViewData) {
+                     { "Src", Model.ImageUrl },
+                     { "Alt", Model.Name },
+                     { "CssClass", "img-fluid rounded-4 shadow city-hero-img" }
+                 }' />
+    </div>
+    <div class="col-lg-5">
+        <div class="city-summary-card h-100">
+            <h1 class="display-6 fw-bold mb-2">@Model.Name</h1>
+            <p class="text-muted mb-3">@Model.Region</p>
+
+            <div class="info-grid mb-3">
+                <div class="info-item">
+                    <span class="info-label">Население</span>
+                    <span class="info-value">@DisplayFormat.Population(Model.Population)</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Достопримечательности</span>
+                    <span class="info-value">@Model.Attractions.Count</span>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.CoatOfArmsUrl))
+            {
+                <div class="coat-wrap mb-3">
+                    <partial name="_ResponsiveImage"
+                             view-data='new ViewDataDictionary(ViewData) {
+                                 { "Src", Model.CoatOfArmsUrl },
+                                 { "Alt", $"Герб {Model.Name}" },
+                                 { "CssClass", "coat-of-arms" }
+                             }' />
+                    <div>
+                        <div class="fw-semibold">Герб города</div>
+                        <div class="text-muted small">Официальная символика</div>
+                    </div>
+                </div>
+            }
+
+            <p class="mb-0">@Model.ShortDescription</p>
+        </div>
+    </div>
+</div>
+
+<section class="content-section mb-5">
+    <h2 class="section-title">История</h2>
+    <p class="city-history">@Model.History</p>
+</section>
+
+<section class="content-section">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h2 class="section-title mb-0">Достопримечательности</h2>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge rounded-pill text-bg-light border">
+                @Model.Attractions.Count @DisplayFormat.Pluralize(Model.Attractions.Count, "объект", "объекта", "объектов")
+            </span>
+            @if (Model.Attractions.Any())
+            {
+                <a asp-controller="Attractions" asp-action="Index" asp-route-cityId="@Model.Id" class="btn btn-sm btn-outline-primary">
+                    В каталоге
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (!Model.Attractions.Any())
+    {
+        <div class="empty-state py-4">
+            <p class="text-muted mb-0">Достопримечательности для этого города пока не добавлены.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            @foreach (var attraction in Model.Attractions)
+            {
+                <div class="col">
+                    <partial name="_AttractionCard" model="attraction" />
+                </div>
+            }
+        </div>
+    }
+</section>
+
+<a asp-action="Index" class="btn btn-link mt-4 px-0">&larr; К списку городов</a>

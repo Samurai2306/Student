@@ -1,0 +1,88 @@
+﻿@model TouristGuide.ViewModels.DashboardViewModel
+@using TouristGuide.Helpers
+@{
+    ViewData["Title"] = "Главная";
+}
+
+<section class="hero-panel mb-4">
+    <div class="hero-panel-content">
+        <p class="hero-kicker mb-2">Практическое занятие №4</p>
+        <h1 class="display-5 fw-bold mb-2">Туристический путеводитель</h1>
+        <p class="lead mb-0">
+            Откройте города России: история, гербы, фото и достопримечательности в одном приложении.
+        </p>
+    </div>
+</section>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-value">@Model.CitiesCount</div>
+            <div class="kpi-label">@DisplayFormat.Pluralize(Model.CitiesCount, "город", "города", "городов")</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card kpi-accent">
+            <div class="kpi-value">@Model.AttractionsCount</div>
+            <div class="kpi-label">@DisplayFormat.Pluralize(Model.AttractionsCount, "место", "места", "мест")</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-value">@Model.RegionsCount</div>
+            <div class="kpi-label">@DisplayFormat.Pluralize(Model.RegionsCount, "регион", "региона", "регионов")</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card kpi-ok">
+            <div class="kpi-value">@Model.FreeAttractionsCount</div>
+            <div class="kpi-label">бесплатных входов</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="content-section h-100">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h2 class="section-title mb-0">Крупнейшие города</h2>
+                <a asp-controller="Cities" asp-action="Index" asp-route-sort="population-desc" class="btn btn-sm btn-outline-primary">Все города</a>
+            </div>
+            <div class="row row-cols-1 row-cols-md-3 g-3">
+                @foreach (var city in Model.TopCities)
+                {
+                    <div class="col">
+                        <partial name="_CityCard" model="city" />
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="content-section h-100">
+            <h2 class="section-title">Быстрые ссылки</h2>
+            <div class="d-grid gap-2">
+                <a asp-controller="Cities" asp-action="Index" class="btn btn-outline-primary">Каталог городов</a>
+                <a asp-controller="Attractions" asp-action="Index" class="btn btn-outline-primary">Все достопримечательности</a>
+                <a asp-controller="Attractions" asp-action="Index" asp-route-fee="free" class="btn btn-outline-success">Бесплатные места</a>
+                <a asp-controller="Cities" asp-action="Index" asp-route-search="море" class="btn btn-outline-secondary">Поиск: «море»</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content-section">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h2 class="section-title mb-0">Популярные места</h2>
+        <a asp-controller="Attractions" asp-action="Index" class="btn btn-sm btn-outline-primary">Смотреть все</a>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        @foreach (var attraction in Model.FeaturedAttractions)
+        {
+            <div class="col">
+                <partial name="_AttractionCard" model="attraction" />
+            </div>
+        }
+    </div>
+</section>
+

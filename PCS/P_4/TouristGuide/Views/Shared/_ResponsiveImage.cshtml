@@ -1,0 +1,12 @@
+@{
+    var src = (string?)ViewData["Src"] ?? string.Empty;
+    var alt = (string?)ViewData["Alt"] ?? "Изображение";
+    var cssClass = (string?)ViewData["CssClass"] ?? "img-fluid";
+    var placeholder = Url.Content("~/images/placeholder-city.svg");
+}
+
+<img src="@src"
+     class="@cssClass"
+     alt="@alt"
+     loading="lazy"
+     onerror="this.onerror=null;this.src='@placeholder';" />

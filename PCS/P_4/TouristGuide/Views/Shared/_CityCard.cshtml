@@ -1,0 +1,30 @@
+@model TouristGuide.Models.City
+@using TouristGuide.Helpers
+
+<div class="card city-card h-100 shadow-sm">
+    <div class="city-card-media">
+        <partial name="_ResponsiveImage"
+                 view-data='new ViewDataDictionary(ViewData) {
+                     { "Src", Model.ImageUrl },
+                     { "Alt", Model.Name },
+                     { "CssClass", "card-img-top city-card-img" }
+                 }' />
+        <span class="badge city-card-badge bg-primary">
+            @Model.Attractions.Count @DisplayFormat.Pluralize(Model.Attractions.Count, "место", "места", "мест")
+        </span>
+    </div>
+    <div class="card-body d-flex flex-column">
+        <h5 class="card-title mb-1">@Model.Name</h5>
+        <p class="text-muted small mb-1">@Model.Region</p>
+        <p class="text-muted small mb-2">
+            <span class="meta-icon">👥</span> @DisplayFormat.Population(Model.Population)
+        </p>
+        <p class="card-text flex-grow-1">@Model.ShortDescription</p>
+        <a asp-controller="Cities"
+           asp-action="Details"
+           asp-route-id="@Model.Id"
+           class="btn btn-primary mt-auto">
+            Подробнее о городе
+        </a>
+    </div>
+</div>

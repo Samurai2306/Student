@@ -1,0 +1,123 @@
+body {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.app-header {
+    background: linear-gradient(90deg, #111827, #1f2937);
+}
+
+.page-header {
+    max-width: 900px;
+}
+
+.panel-card,
+.line-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.05);
+    height: 100%;
+}
+
+.panel-card.border-primary {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.15);
+}
+
+.panel-warning {
+    border-color: #fcd34d;
+    background: #fffbeb;
+}
+
+.kpi-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.85rem;
+    padding: 1rem 1.1rem;
+    text-align: center;
+    box-shadow: 0 0.25rem 0.75rem rgba(15, 23, 42, 0.04);
+    height: 100%;
+}
+
+.kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #111827;
+}
+
+.kpi-label {
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.kpi-warn .kpi-value { color: #d97706; }
+.kpi-accent .kpi-value { color: #2563eb; }
+.kpi-ok .kpi-value { color: #16a34a; }
+
+.line-card.line-active {
+    border-left: 4px solid #16a34a;
+}
+
+.line-card.line-stopped {
+    border-left: 4px solid #9ca3af;
+}
+
+.quick-start-form {
+    background: #f9fafb;
+    border: 1px dashed #d1d5db;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-progress { background: #dbeafe; color: #1d4ed8; }
+.status-done { background: #dcfce7; color: #166534; }
+.status-cancel { background: #fee2e2; color: #991b1b; }
+
+.calc-box {
+    background: #f9fafb;
+    border: 1px dashed #d1d5db;
+    border-radius: 0.75rem;
+    padding: 0.85rem;
+    font-size: 0.92rem;
+}
+
+.calc-ok { border-color: #86efac; background: #f0fdf4; }
+.calc-warn { border-color: #fca5a5; background: #fef2f2; }
+
+.filter-tabs .btn {
+    border-radius: 999px;
+}
+
+.order-progress {
+    background: #e5e7eb;
+}
+
+.schedule-list .list-group-item {
+    background: transparent;
+}
+
+.table-warning {
+    --bs-table-bg: #fff7ed;
+}
+
+@media (max-width: 575.98px) {
+    .kpi-value {
+        font-size: 1.35rem;
+    }
+}
+

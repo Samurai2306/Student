@@ -1,0 +1,189 @@
+@model ProductionSystem.ViewModels.OrdersIndexViewModel
+@using ProductionSystem.Models
+@{
+    ViewData["Title"] = "Заказы";
+    string StatusClass(string status) => status switch
+    {
+        WorkOrder.StatusPending => "status-pending",
+        WorkOrder.StatusInProgress => "status-progress",
+        WorkOrder.StatusCompleted => "status-done",
+        WorkOrder.StatusCancelled => "status-cancel",
+        _ => "status-pending"
+    };
+    string StatusLabel(string status) => status switch
+    {
+        WorkOrder.StatusPending => "Ожидает",
+        WorkOrder.StatusInProgress => "В работе",
+        WorkOrder.StatusCompleted => "Завершён",
+        WorkOrder.StatusCancelled => "Отменён",
+        _ => status
+    };
+    bool IsFilter(string? value) => string.Equals(Model.StatusFilter, value, StringComparison.OrdinalIgnoreCase);
+}
+
+<div class="page-header mb-4">
+    <h1 class="h3 fw-bold">Панель заказов</h1>
+    <p class="text-muted mb-0">Планирование производства с авторасчётом сроков и проверкой материалов.</p>
+</div>
+
+@if (Model.Message is not null) { <div class="alert alert-success">@Model.Message</div> }
+@if (Model.Error is not null) { <div class="alert alert-danger">@Model.Error</div> }
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <div class="panel-card mb-3">
+            <div class="filter-tabs d-flex flex-wrap gap-2">
+                <a asp-action="Index" class="btn btn-sm @(Model.StatusFilter is null ? "btn-primary" : "btn-outline-secondary")">Все</a>
+                <a asp-action="Index" asp-route-status="active" class="btn btn-sm @(IsFilter("active") ? "btn-primary" : "btn-outline-secondary")">Активные</a>
+                <a asp-action="Index" asp-route-status="@WorkOrder.StatusPending" class="btn btn-sm @(IsFilter(WorkOrder.StatusPending) ? "btn-primary" : "btn-outline-secondary")">Ожидают</a>
+                <a asp-action="Index" asp-route-status="@WorkOrder.StatusInProgress" class="btn btn-sm @(IsFilter(WorkOrder.StatusInProgress) ? "btn-primary" : "btn-outline-secondary")">В работе</a>
+                <a asp-action="Index" asp-route-status="@WorkOrder.StatusCompleted" class="btn btn-sm @(IsFilter(WorkOrder.StatusCompleted) ? "btn-primary" : "btn-outline-secondary")">Завершены</a>
+            </div>
+        </div>
+
+        <div class="panel-card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Продукт</th>
+                            <th>Кол-во</th>
+                            <th>Статус</th>
+                            <th>Прогресс</th>
+                            <th>Срок выполнения</th>
+                            <th>Линия</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders)
+                        {
+                            <tr>
+                                <td><a asp-action="Details" asp-route-id="@order.Id">#@order.Id</a></td>
+                                <td>@order.Product.Name</td>
+                                <td>@order.Quantity</td>
+                                <td><span class="status-badge @StatusClass(order.Status)">@StatusLabel(order.Status)</span></td>
+                                <td style="min-width:120px">
+                                    @if (order.Status == WorkOrder.StatusInProgress)
+                                    {
+                                        <div class="progress order-progress" style="height:8px">
+                                            <div class="progress-bar" style="width:@order.ProgressPercent%"></div>
+                                        </div>
+                                        <span class="small text-muted">@order.ProgressPercent%</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>@order.EstimatedEndDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@(order.ProductionLine?.Name ?? "—")</td>
+                                <td class="text-nowrap">
+                                    <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-secondary">Детали</a>
+                                    @if (order.Status is WorkOrder.StatusPending or WorkOrder.StatusInProgress)
+                                    {
+                                        if (order.Status == WorkOrder.StatusPending)
+                                        {
+                                            <form asp-action="Start" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <button class="btn btn-sm btn-success">Запустить</button>
+                                            </form>
+                                        }
+                                        <form asp-action="Cancel" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@order.Id" />
+                                            <button class="btn btn-sm btn-outline-danger">Отменить</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="panel-card">
+            <h2 class="h5 mb-3">Создать заказ</h2>
+            <form asp-action="Create" method="post" id="orderForm">
+                @Html.AntiForgeryToken()
+                <div class="mb-2">
+                    <label class="form-label">Продукт</label>
+                    <select asp-for="NewOrder.ProductId" class="form-select" id="productSelect">
+                        @foreach (var product in Model.Products)
+                        {
+                            <option value="@product.Id" data-time="@product.ProductionTimePerUnit">
+                                @product.Name (@product.ProductionTimePerUnit мин/шт)
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Количество</label>
+                    <input asp-for="NewOrder.Quantity" class="form-control" id="quantityInput" min="1" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Линия</label>
+                    <select asp-for="NewOrder.ProductionLineId" class="form-select" id="lineSelect">
+                        <option value="">Не назначена</option>
+                        @foreach (var line in Model.AvailableLines)
+                        {
+                            <option value="@line.Id">@line.Name (k=@line.EfficiencyFactor)</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Дата начала</label>
+                    <input asp-for="NewOrder.StartDate" class="form-control" type="datetime-local" id="startDateInput"
+                           value="@Model.NewOrder.StartDate.ToString("yyyy-MM-ddTHH:mm")" />
+                </div>
+                <div id="calcBox" class="calc-box mb-3">
+                    Расчёт: выберите продукт и количество
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Создать заказ</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function refreshCalculation() {
+            const productId = document.getElementById('productSelect').value;
+            const quantity = document.getElementById('quantityInput').value;
+            const lineId = document.getElementById('lineSelect').value;
+            const startDate = document.getElementById('startDateInput').value;
+            const box = document.getElementById('calcBox');
+            const params = new URLSearchParams({ productId, quantity });
+            if (lineId) params.append('lineId', lineId);
+            if (startDate) params.append('startDate', startDate);
+            try {
+                const response = await fetch(`/Orders/Calculate?${params}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Ошибка расчёта');
+                const end = new Date(data.endDate);
+                let html = `Время: <strong>${data.minutes} мин</strong><br>` +
+                    `Окончание: <strong>${end.toLocaleString('ru-RU')}</strong><br>` +
+                    `Материалы: <strong>${data.materialsOk ? 'достаточно' : 'не хватает'}</strong>`;
+                if (data.materialMessages?.length) {
+                    html += '<ul class="mb-0 mt-1 ps-3 small">';
+                    data.materialMessages.forEach(m => { html += `<li>${m}</li>`; });
+                    html += '</ul>';
+                }
+                box.innerHTML = html;
+                box.className = 'calc-box mb-3 ' + (data.materialsOk ? 'calc-ok' : 'calc-warn');
+            } catch (e) {
+                box.textContent = e.message;
+                box.className = 'calc-box mb-3 calc-warn';
+            }
+        }
+        ['productSelect', 'quantityInput', 'lineSelect', 'startDateInput'].forEach(id =>
+            document.getElementById(id).addEventListener('change', refreshCalculation));
+        refreshCalculation();
+    </script>
+}
+

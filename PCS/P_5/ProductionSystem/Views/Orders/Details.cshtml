@@ -1,0 +1,91 @@
+@model ProductionSystem.ViewModels.OrderDetailsViewModel
+@using ProductionSystem.Models
+@{
+    ViewData["Title"] = $"Заказ #{Model.Order.Id}";
+    string StatusLabel(string status) => status switch
+    {
+        WorkOrder.StatusPending => "Ожидает",
+        WorkOrder.StatusInProgress => "В работе",
+        WorkOrder.StatusCompleted => "Завершён",
+        WorkOrder.StatusCancelled => "Отменён",
+        _ => status
+    };
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Orders" asp-action="Index">Заказы</a></li>
+        <li class="breadcrumb-item active">#@Model.Order.Id</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel-card">
+            <h1 class="h4">Заказ #@Model.Order.Id</h1>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Продукт</dt><dd class="col-sm-8">@Model.Order.Product.Name</dd>
+                <dt class="col-sm-4">Количество</dt><dd class="col-sm-8">@Model.Order.Quantity шт.</dd>
+                <dt class="col-sm-4">Статус</dt><dd class="col-sm-8">@StatusLabel(Model.Order.Status)</dd>
+                <dt class="col-sm-4">Прогресс</dt>
+                <dd class="col-sm-8">
+                    <div class="progress order-progress mb-1" style="height:10px;max-width:200px">
+                        <div class="progress-bar" style="width:@Model.Order.ProgressPercent%"></div>
+                    </div>
+                    @Model.Order.ProgressPercent%
+                </dd>
+                <dt class="col-sm-4">Линия</dt><dd class="col-sm-8">@(Model.Order.ProductionLine?.Name ?? "—")</dd>
+                <dt class="col-sm-4">Начало</dt><dd class="col-sm-8">@Model.Order.StartDate.ToString("dd.MM.yyyy HH:mm")</dd>
+                <dt class="col-sm-4">Окончание</dt><dd class="col-sm-8">@Model.Order.EstimatedEndDate.ToString("dd.MM.yyyy HH:mm")</dd>
+                <dt class="col-sm-4">Расчётное время</dt><dd class="col-sm-8">@Model.ProductionMinutes мин</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="panel-card">
+            <h2 class="h6">План материалов</h2>
+            @if (!Model.MaterialPlan.Any())
+            {
+                <p class="text-muted mb-0">Рецептура не задана.</p>
+            }
+            else
+            {
+                <table class="table table-sm">
+                    <thead><tr><th>Материал</th><th>Нужно</th><th>На складе</th></tr></thead>
+                    <tbody>
+                        @foreach (var row in Model.MaterialPlan)
+                        {
+                            var ok = row.Available >= row.Needed;
+                            <tr class="@(ok ? string.Empty : "table-warning")">
+                                <td>@row.Name</td>
+                                <td>@row.Needed @row.Unit</td>
+                                <td>@row.Available @row.Unit</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+<a asp-controller="Orders" asp-action="Index" class="btn btn-link mt-3 px-0">&larr; К списку заказов</a>
+
+@if (Model.Order.Status is WorkOrder.StatusPending or WorkOrder.StatusInProgress)
+{
+    <div class="mt-2 d-flex gap-2">
+        @if (Model.Order.Status == WorkOrder.StatusPending)
+        {
+            <form asp-controller="Orders" asp-action="Start" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Order.Id" />
+                <button class="btn btn-success btn-sm">Запустить</button>
+            </form>
+        }
+        <form asp-controller="Orders" asp-action="Cancel" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Order.Id" />
+            <button class="btn btn-outline-danger btn-sm">Отменить</button>
+        </form>
+    </div>
+}

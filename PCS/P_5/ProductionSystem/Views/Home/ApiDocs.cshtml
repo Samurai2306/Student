@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "REST API";
+}
+
+<div class="page-header mb-4">
+    <h1 class="h3 fw-bold">REST API</h1>
+    <p class="text-muted">Эндпоинты по техническому заданию практики №5.</p>
+</div>
+
+<div class="panel-card">
+    <table class="table table-sm">
+        <thead><tr><th>Метод</th><th>URL</th><th>Описание</th></tr></thead>
+        <tbody>
+            <tr><td>GET</td><td><code>/api/materials?low_stock=true</code></td><td>Материалы с низким запасом</td></tr>
+            <tr><td>POST</td><td><code>/api/materials</code></td><td>Добавить материал</td></tr>
+            <tr><td>PUT</td><td><code>/api/materials/{id}/stock</code></td><td>Пополнить склад</td></tr>
+            <tr><td>GET</td><td><code>/api/products?category=...</code></td><td>Список продуктов</td></tr>
+            <tr><td>GET</td><td><code>/api/products/{id}/materials</code></td><td>Рецептура продукта</td></tr>
+            <tr><td>POST</td><td><code>/api/products</code></td><td>Создать продукт</td></tr>
+            <tr><td>GET</td><td><code>/api/lines?available=true</code></td><td>Доступные линии</td></tr>
+            <tr><td>PUT</td><td><code>/api/lines/{id}/status</code></td><td>Статус линии</td></tr>
+            <tr><td>GET</td><td><code>/api/lines/{id}/schedule</code></td><td>Расписание линии</td></tr>
+            <tr><td>GET</td><td><code>/api/orders?status=active&amp;date=today</code></td><td>Фильтр заказов</td></tr>
+            <tr><td>POST</td><td><code>/api/orders</code></td><td>Создать заказ</td></tr>
+            <tr><td>PUT</td><td><code>/api/orders/{id}/progress</code></td><td>Прогресс заказа</td></tr>
+            <tr><td>GET</td><td><code>/api/orders/{id}/details</code></td><td>Детали заказа</td></tr>
+            <tr><td>POST</td><td><code>/api/calculate/production</code></td><td>Расчёт времени</td></tr>
+        </tbody>
+    </table>
+</div>

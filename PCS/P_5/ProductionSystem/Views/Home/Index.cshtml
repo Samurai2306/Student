@@ -1,0 +1,80 @@
+﻿@model ProductionSystem.ViewModels.DashboardViewModel
+@using ProductionSystem.Models
+@{
+    ViewData["Title"] = "Дашборд";
+    string StatusLabel(string status) => status switch
+    {
+        WorkOrder.StatusPending => "Ожидает",
+        WorkOrder.StatusInProgress => "В работе",
+        WorkOrder.StatusCompleted => "Завершён",
+        WorkOrder.StatusCancelled => "Отменён",
+        _ => status
+    };
+}
+
+<div class="page-header mb-4">
+    <h1 class="h3 fw-bold">Панель управления производством</h1>
+    <p class="text-muted mb-0">Обзор склада, заказов и линий в реальном времени.</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-xl-2"><div class="kpi-card"><div class="kpi-value">@Model.MaterialsCount</div><div class="kpi-label">Материалов</div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="kpi-card kpi-warn"><div class="kpi-value">@Model.LowStockCount</div><div class="kpi-label">Низкий запас</div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="kpi-card"><div class="kpi-value">@Model.ProductsCount</div><div class="kpi-label">Продуктов</div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="kpi-card kpi-accent"><div class="kpi-value">@Model.ActiveOrdersCount</div><div class="kpi-label">Активных заказов</div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="kpi-card"><div class="kpi-value">@Model.InProgressOrdersCount</div><div class="kpi-label">В работе</div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="kpi-card kpi-ok"><div class="kpi-value">@Model.AvailableLinesCount</div><div class="kpi-label">Свободных линий</div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-xl-7">
+        <div class="panel-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0">Последние заказы</h2>
+                <a asp-controller="Orders" asp-action="Index" class="btn btn-sm btn-outline-primary">Все заказы</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>№</th><th>Продукт</th><th>Статус</th><th>Срок</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var order in Model.RecentOrders)
+                        {
+                            <tr>
+                                <td>#@order.Id</td>
+                                <td>@order.Product.Name</td>
+                                <td>@StatusLabel(order.Status)</td>
+                                <td>@order.EstimatedEndDate.ToString("dd.MM HH:mm")</td>
+                                <td><a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id">Детали</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-5">
+        <div class="panel-card mb-4">
+            <h2 class="h5 mb-3">Быстрые действия</h2>
+            <div class="d-grid gap-2">
+                <a asp-controller="Materials" asp-action="Index" class="btn btn-outline-secondary">Материалы и склад</a>
+                <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary">Каталог продуктов</a>
+                <a asp-controller="Orders" asp-action="Index" class="btn btn-outline-secondary">Создать заказ</a>
+                <a asp-controller="Lines" asp-action="Index" class="btn btn-outline-secondary">Управление линиями</a>
+                <a asp-controller="Home" asp-action="ApiDocs" class="btn btn-outline-primary">Документация REST API</a>
+            </div>
+        </div>
+
+        @if (Model.LowStockMaterials.Any())
+        {
+            <div class="panel-card panel-warning">
+                <h2 class="h6 mb-2">Требуют пополнения</h2>
+                <ul class="mb-0 ps-3">
+                    @foreach (var material in Model.LowStockMaterials)
+                    {
+                        <li>@material.Name — @material.Quantity @material.UnitOfMeasure (мин. @material.MinimalStock)</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+</div>
