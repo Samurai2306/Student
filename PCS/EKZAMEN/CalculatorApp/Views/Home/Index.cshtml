@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "Calculator";
+}
+
+<h1>Calculator</h1>
+
+<form asp-action="OnPostSum" method="post">
+    <div>
+        <label for="Number1">Number1</label>
+        <input type="text" id="Number1" name="Number1" value="@ViewData["Number1"]" />
+    </div>
+    <div>
+        <label for="Number2">Number2</label>
+        <input type="text" id="Number2" name="Number2" value="@ViewData["Number2"]" />
+    </div>
+    <button type="submit">Calculate</button>
+</form>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+@if (ViewData["Result"] != null)
+{
+    <p>Result: @ViewData["Result"]</p>
+}
